@@ -1,0 +1,23 @@
+# Use only python provider, handle bun manually
+providers = ["python"]
+
+[phases.setup]
+nixPkgs = ["python311", "python311Packages.pip", "bun", "glibc"]
+
+[phases.install]
+dependsOn = ["setup"]
+cmds = [
+  "bun install",
+  "python -m venv /opt/venv",
+  "/opt/venv/bin/pip install -r requirements.txt"
+]
+
+[phases.build]
+dependsOn = ["install"]
+cmds = ["bun --bun next build"]
+
+[start]
+cmd = "bun --bun next start"
+
+[variables]
+PATH = "/opt/venv/bin:${PATH}"
