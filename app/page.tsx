@@ -24,11 +24,11 @@ const supplementary = [
     title: "Code for the three prototypes",
   },
   {
-    href: "https://github.com/sequencevistrust-art/prototypes/blob/main/app/api/explain/system-prompt.ts",
+    href: "https://raw.githubusercontent.com/sequencevistrust-art/prototypes/refs/heads/main/app/api/explain/system-prompt.ts",
     title: "Insight generation system prompt",
   },
   {
-    href: "https://github.com/sequencevistrust-art/prototypes/blob/main/app/api/fact-checking/system-prompt.ts",
+    href: "https://raw.githubusercontent.com/sequencevistrust-art/prototypes/refs/heads/main/app/api/fact-checking/system-prompt.ts",
     title: "Fact checking system prompt",
   },
   {
