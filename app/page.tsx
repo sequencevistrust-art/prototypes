@@ -24,6 +24,14 @@ const supplementary = [
     title: "Code for the three prototypes",
   },
   {
+    href: "https://github.com/sequencevistrust-art/prototypes/blob/main/app/api/explain/system-prompt.ts",
+    title: "Insight generation system prompt",
+  },
+  {
+    href: "https://github.com/sequencevistrust-art/prototypes/blob/main/app/api/fact-checking/system-prompt.ts",
+    title: "Fact checking system prompt",
+  },
+  {
     href: "https://github.com/sequencevistrust-art/supplementary/tree/main/tech-eval",
     title: "Technical evaluation",
   },
