@@ -108,7 +108,7 @@ async function handleAddOneRowOperation(
       operation,
       pattern: operation.pattern,
       appliedFilters: activeFilters,
-      count: { id: `row-header-${newRowIndex}-count`, value: newSegmentList.length },
+      sessionCount: { id: `row-header-${newRowIndex}-session-count`, value: newSegmentList.length },
       duration: { id: `row-header-${newRowIndex}-duration`, value: calculateAverageDuration(newSegmentList) },
     };
   } else if (operation.subType === "add-one-row-by-record-attribute") {
@@ -128,7 +128,7 @@ async function handleAddOneRowOperation(
             }
           : operation.recordAttribute,
       appliedFilters: activeFilters,
-      count: { id: `row-header-${newRowIndex}-count`, value: newSegmentList.length },
+      sessionCount: { id: `row-header-${newRowIndex}-session-count`, value: newSegmentList.length },
       duration: { id: `row-header-${newRowIndex}-duration`, value: calculateAverageDuration(newSegmentList) },
     };
   } else {
@@ -194,7 +194,7 @@ async function handleAddMultipleRowsOperation(
           operation,
           pattern: pattern.pattern,
           appliedFilters: activeFilters,
-          count: { id: `row-header-${rowIndex}-count`, value: segmentList.length },
+          sessionCount: { id: `row-header-${rowIndex}-session-count`, value: segmentList.length },
           duration: { id: `row-header-${rowIndex}-duration`, value: calculateAverageDuration(segmentList) },
         },
         cells,
@@ -240,7 +240,7 @@ async function handleAddMultipleRowsOperation(
             value,
           },
           appliedFilters: activeFilters,
-          count: { id: `row-header-${rowIndex}-count`, value: segmentList.length },
+          sessionCount: { id: `row-header-${rowIndex}-session-count`, value: segmentList.length },
           duration: { id: `row-header-${rowIndex}-duration`, value: calculateAverageDuration(segmentList) },
         },
         cells,

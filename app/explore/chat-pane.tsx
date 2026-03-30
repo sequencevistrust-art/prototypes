@@ -258,16 +258,16 @@ export default function ChatPane({ headerAction }: ChatPaneProps) {
   // Handle clicking on a citation
   const handleCitationClick = (toolCallId: string, ids: string[], reference: string) => {
     const cellIds: string[] = [];
-    const countIds: string[] = [];
+    const sessionCountIds: string[] = [];
     const durationIds: string[] = [];
 
     for (const id of ids) {
-      const countMatch = id.match(/^(.+?)-row-header-(\d+)-count(?:-|$)/);
+      const sessionCountMatch = id.match(/^(.+?)-row-header-(\d+)-session-count(?:-|$)/);
       const durationMatch = id.match(/^(.+?)-row-header-(\d+)-duration(?:-|$)/);
       const cellMatch = id.match(/^(.+?)-cell-(\d+)-(\d+)/);
 
-      if (countMatch) {
-        if (!countIds.includes(id)) countIds.push(id);
+      if (sessionCountMatch) {
+        if (!sessionCountIds.includes(id)) sessionCountIds.push(id);
       } else if (durationMatch) {
         if (!durationIds.includes(id)) durationIds.push(id);
       } else if (cellMatch) {
@@ -313,7 +313,7 @@ export default function ChatPane({ headerAction }: ChatPaneProps) {
       rowOperations: operations.rowOperations,
       columnOperations: operations.columnOperations,
       highlightCellIds: cellIds.length > 0 ? cellIds : undefined,
-      highlightCountIds: countIds.length > 0 ? countIds : undefined,
+      highlightSessionCountIds: sessionCountIds.length > 0 ? sessionCountIds : undefined,
       highlightDurationIds: durationIds.length > 0 ? durationIds : undefined,
     });
 

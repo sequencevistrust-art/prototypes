@@ -130,7 +130,7 @@ function convertFiltersToSteps(
           value: { id: gen.stepId(currentIndex, 'recordAttribute', 'value'), value: attr.value ?? "All" },
         },
         sessionCount: isLast && showSessionCount
-          ? { id: gen.dataId(rowHeader.count.id), value: rowHeader.count.value }
+          ? { id: gen.dataId(rowHeader.sessionCount.id), value: rowHeader.sessionCount.value }
           : undefined,
       };
       steps.push(step);
@@ -144,7 +144,7 @@ function convertFiltersToSteps(
           range: { id: gen.stepId(currentIndex, 'recordAttribute', 'range'), value: { min: String(attr.min), max: String(attr.max) } },
         },
         sessionCount: isLast && showSessionCount
-          ? { id: gen.dataId(rowHeader.count.id), value: rowHeader.count.value }
+          ? { id: gen.dataId(rowHeader.sessionCount.id), value: rowHeader.sessionCount.value }
           : undefined,
       };
       steps.push(step);
@@ -170,7 +170,7 @@ function convertFiltersToSteps(
           value: { id: gen.stepId(currentIndex, 'recordAttribute', 'value'), value: attr.value ?? "All" },
         },
         sessionCount: isLast && showSessionCount
-          ? { id: gen.dataId(rowHeader.count.id), value: rowHeader.count.value }
+          ? { id: gen.dataId(rowHeader.sessionCount.id), value: rowHeader.sessionCount.value }
           : undefined,
       };
       steps.push(step);
@@ -190,7 +190,7 @@ function convertFiltersToSteps(
           range: { id: gen.stepId(currentIndex, 'recordAttribute', 'range'), value: range },
         },
         sessionCount: isLast && showSessionCount
-          ? { id: gen.dataId(rowHeader.count.id), value: rowHeader.count.value }
+          ? { id: gen.dataId(rowHeader.sessionCount.id), value: rowHeader.sessionCount.value }
           : undefined,
       };
       steps.push(step);
@@ -211,7 +211,7 @@ function convertFiltersToSteps(
       index: currentIndex,
       pattern: patternHeader.pattern.map((e, i) => convertEventAttribute(gen, e, currentIndex, `pattern-${i}`)),
       sessionCount: isLast && showSessionCount
-        ? { id: gen.dataId(rowHeader.count.id), value: rowHeader.count.value }
+        ? { id: gen.dataId(rowHeader.sessionCount.id), value: rowHeader.sessionCount.value }
         : undefined,
     };
     steps.push(step);
@@ -403,17 +403,17 @@ function convertCellToAnalysisStep(
 function convertRowHeaderToAnalysisSteps(
   gen: CitationIdGenerator,
   rowHeader: RowHeader,
-  refType: "row-header" | "row-header-count" | "row-header-duration",
+  refType: "row-header" | "row-header-session-count" | "row-header-duration",
   index: number,
 ): Step[] {
   const steps: Step[] = [];
 
-  if (refType === "row-header" || refType === "row-header-count") {
+  if (refType === "row-header" || refType === "row-header-session-count") {
     const step: SessionCountAnalysisStep = {
       type: "session-count-analysis",
       index,
       label: { id: gen.stepId(index, 'label'), value: "SESSION COUNT" as const },
-      sessionCount: { id: gen.dataId(rowHeader.count.id), value: rowHeader.count.value },
+      sessionCount: { id: gen.dataId(rowHeader.sessionCount.id), value: rowHeader.sessionCount.value },
     };
     steps.push(step);
   }
@@ -481,7 +481,7 @@ export function convertToSteps(
 
     const isRowHeader =
       refCell.type === "row-header" ||
-      refCell.type === "row-header-count" ||
+      refCell.type === "row-header-session-count" ||
       refCell.type === "row-header-duration";
 
     // Check for pattern with segment
@@ -499,7 +499,7 @@ export function convertToSteps(
       const noFilterStep: NoFilterStep = {
         type: "no-filter",
         label: { id: gen.stepId(0, 'label'), value: "NO FILTER APPLIED" as const },
-        sessionCount: { id: gen.dataId(refCell.rowHeader.count.id), value: refCell.rowHeader.count.value },
+        sessionCount: { id: gen.dataId(refCell.rowHeader.sessionCount.id), value: refCell.rowHeader.sessionCount.value },
       };
       steps.push(noFilterStep);
     } else {
@@ -519,7 +519,7 @@ export function convertToSteps(
         const patternSegmentSteps = convertPatternSegmentToSteps(
           gen,
           patternWithSegment,
-          refCell.rowHeader.count,
+          refCell.rowHeader.sessionCount,
           currentIndex,
         );
         steps.push(...patternSegmentSteps);
@@ -532,7 +532,7 @@ export function convertToSteps(
       const analysisSteps = convertRowHeaderToAnalysisSteps(
         gen,
         refCell.rowHeader,
-        refCell.type as "row-header" | "row-header-count" | "row-header-duration",
+        refCell.type as "row-header" | "row-header-session-count" | "row-header-duration",
         currentIndex,
       );
       steps.push(...analysisSteps);
@@ -553,10 +553,10 @@ export function convertToSteps(
   if (referencedCells.length >= 2 && !hasOnlyCommaOperators) {
     // Extract values for comparison from the referenced cells
     const comparisonValues = referencedCells.map((refCell) => {
-      if (refCell.type === "row-header-count") {
+      if (refCell.type === "row-header-session-count") {
         return {
-          id: gen.dataId(refCell.rowHeader.count.id),
-          value: refCell.rowHeader.count.value.toString(),
+          id: gen.dataId(refCell.rowHeader.sessionCount.id),
+          value: refCell.rowHeader.sessionCount.value.toString(),
         };
       }
       if (refCell.type === "row-header-duration") {
@@ -567,8 +567,8 @@ export function convertToSteps(
       }
       if (refCell.type === "row-header") {
         return {
-          id: gen.dataId(refCell.rowHeader.count.id),
-          value: refCell.rowHeader.count.value.toString(),
+          id: gen.dataId(refCell.rowHeader.sessionCount.id),
+          value: refCell.rowHeader.sessionCount.value.toString(),
         };
       }
       // Cell value

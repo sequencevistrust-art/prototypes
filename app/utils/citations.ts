@@ -53,14 +53,14 @@ export function parseReference(reference: string): { ids: string[]; toolCallId: 
   let toolCallId: string | null = null;
   for (const id of ids) {
     const cellMatch = id.match(/^(.+?)-cell-(\d+)-(\d+)/);
-    const countMatch = id.match(/^(.+?)-row-header-(\d+)-count(?:-|$)/);
+    const sessionCountMatch = id.match(/^(.+?)-row-header-(\d+)-session-count(?:-|$)/);
     const durationMatch = id.match(/^(.+?)-row-header-(\d+)-duration(?:-|$)/);
 
     if (cellMatch) {
       toolCallId = cellMatch[1];
       break;
-    } else if (countMatch) {
-      toolCallId = countMatch[1];
+    } else if (sessionCountMatch) {
+      toolCallId = sessionCountMatch[1];
       break;
     } else if (durationMatch) {
       toolCallId = durationMatch[1];

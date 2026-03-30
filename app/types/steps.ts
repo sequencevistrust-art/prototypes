@@ -233,7 +233,7 @@ export class PrefixedIdGenerator implements IIdGenerator {
 export class CitationIdGenerator {
   constructor(
     private toolCallId: string,
-    private cellPrefix: string // e.g., "cell-0-1" or "row-header-0-count"
+    private cellPrefix: string // e.g., "cell-0-1" or "row-header-0-session-count"
   ) {}
 
   /** For values WITHOUT table IDs — semantic path within a step */

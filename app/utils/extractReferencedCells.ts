@@ -2,7 +2,7 @@ import { Table, Cell, RowHeader } from "../types/sandbox";
 
 export interface ReferencedCell {
   id: string;
-  type: Cell["type"] | "row-header" | "row-header-count" | "row-header-duration";
+  type: Cell["type"] | "row-header" | "row-header-session-count" | "row-header-duration";
   data: Cell | RowHeader;
   rowHeader: RowHeader;
   rowIndex: number;
@@ -20,7 +20,7 @@ export interface ReferencedCell {
  * - Cell with number index: "{toolCallId}-cell-{row}-{col}-number-{index}"
  * - Cell with duration: "{toolCallId}-cell-{row}-{col}-duration-{fromIdx}-{toIdx}"
  * - Cell with count: "{toolCallId}-cell-{row}-{col}-count-{fromIdx}-{toIdx}"
- * - Row header count: "{toolCallId}-row-header-{row}-count"
+ * - Row header count: "{toolCallId}-row-header-{row}-session-count"
  * - Row header duration: "{toolCallId}-row-header-{row}-duration"
  *
  * @param table The table containing the cells
@@ -40,8 +40,8 @@ export function extractReferencedCells(
     const funnelCountMatch = refId.match(/-cell-(\d+)-(\d+)-count-(\d+)-(\d+)$/);
     // Try to match cell ID format: "...-cell-{row}-{col}" or "...-cell-{row}-{col}-number-{index}"
     const cellMatch = refId.match(/-cell-(\d+)-(\d+)(?:-number-(\d+))?$/);
-    // Try to match row header count ID format: "...-row-header-{row}-count"
-    const countMatch = refId.match(/-row-header-(\d+)-count$/);
+    // Try to match row header count ID format: "...-row-header-{row}-session-count"
+    const sessionCountMatch = refId.match(/-row-header-(\d+)-session-count$/);
     // Try to match row header duration ID format: "...-row-header-{row}-duration"
     const durationMatch = refId.match(/-row-header-(\d+)-duration$/);
 
@@ -98,13 +98,13 @@ export function extractReferencedCells(
           numberIndex,
         });
       }
-    } else if (countMatch) {
-      const rowIndex = parseInt(countMatch[1], 10);
+    } else if (sessionCountMatch) {
+      const rowIndex = parseInt(sessionCountMatch[1], 10);
       const row = table.rows[rowIndex];
       if (row) {
         results.push({
           id: refId,
-          type: "row-header-count",
+          type: "row-header-session-count",
           data: row.rowHeader,
           rowHeader: row.rowHeader,
           rowIndex,

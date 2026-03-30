@@ -321,7 +321,7 @@ export async function recalculateSegments(
         operation: op,
         pattern: op.pattern,
         appliedFilters: activeFilters,
-        count: { id: `row-header-${currentRowIndex}-count`, value: filtered.length },
+        sessionCount: { id: `row-header-${currentRowIndex}-session-count`, value: filtered.length },
         duration: { id: `row-header-${currentRowIndex}-duration`, value: calculateAverageDuration(filtered) },
       });
       currentRowIndex++;
@@ -357,7 +357,7 @@ export async function recalculateSegments(
               }
             : op.recordAttribute,
         appliedFilters: activeFilters,
-        count: { id: `row-header-${currentRowIndex}-count`, value: filtered.length },
+        sessionCount: { id: `row-header-${currentRowIndex}-session-count`, value: filtered.length },
         duration: { id: `row-header-${currentRowIndex}-duration`, value: calculateAverageDuration(filtered) },
       });
       currentRowIndex++;
@@ -383,7 +383,7 @@ export async function recalculateSegments(
           operation: op,
           pattern: pattern.pattern,
           appliedFilters: activeFilters,
-          count: { id: `row-header-${currentRowIndex}-count`, value: filtered.length },
+          sessionCount: { id: `row-header-${currentRowIndex}-session-count`, value: filtered.length },
           duration: { id: `row-header-${currentRowIndex}-duration`, value: calculateAverageDuration(filtered) },
         });
         currentRowIndex++;
@@ -421,7 +421,7 @@ export async function recalculateSegments(
             value,
           },
           appliedFilters: activeFilters,
-          count: { id: `row-header-${currentRowIndex}-count`, value: segmentList.length },
+          sessionCount: { id: `row-header-${currentRowIndex}-session-count`, value: segmentList.length },
           duration: { id: `row-header-${currentRowIndex}-duration`, value: calculateAverageDuration(segmentList) },
         });
         currentRowIndex++;

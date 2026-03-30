@@ -23,11 +23,11 @@ export function buildCitationGrid(table: Table, toolCallId: string): CitationGri
     const rowCells: CitationCell[] = [];
 
     // Col 0: Session count
-    const countCellId = `${toolCallId}-row-header-${rowIndex}-count`;
-    const countGen = new CitationIdGenerator(toolCallId, `row-header-${rowIndex}-count`);
+    const countCellId = `${toolCallId}-row-header-${rowIndex}-session-count`;
+    const countGen = new CitationIdGenerator(toolCallId, `row-header-${rowIndex}-session-count`);
     const countRefCell: ReferencedCell = {
       id: countCellId,
-      type: "row-header-count",
+      type: "row-header-session-count",
       data: row.rowHeader,
       rowHeader: row.rowHeader,
       rowIndex,

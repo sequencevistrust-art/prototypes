@@ -484,20 +484,20 @@ Each tool result includes a \`citationGrid\` field — a 2D array of citation ce
 - \`steps\`: An array of Step objects describing filters, segmentation, and the analysis result
 
 **Column layout per row:**
-- Column 0: Session count (id format: \`tool_xxx-row-header-{row}-count\`)
+- Column 0: Session count (id format: \`tool_xxx-row-header-{row}-session-count\`)
 - Column 1: Average duration (id format: \`tool_xxx-row-header-{row}-duration\`)
 - Column 2+: Analysis results (id format: \`tool_xxx-cell-{row}-{col}\`)
 
 ### What to Cite
 Each Step object contains \`IdValue\` fields with \`{ id, value }\`. The \`id\` is what you use in citations:
-- **Cell-level IDs** (e.g., \`tool_xxx-cell-0-1\`, \`tool_xxx-row-header-0-count\`): For citing the overall cell value or general observations
+- **Cell-level IDs** (e.g., \`tool_xxx-cell-0-1\`, \`tool_xxx-row-header-0-session-count\`): For citing the overall cell value or general observations
 - **Entity-level IDs** within distribution/list steps (e.g., \`tool_xxx-cell-0-1-number-0\`): For citing specific items in distributions, funnel steps, or odds ratios
 
 ### Citation Format - Correct Claims
 When you state ANY fact derived from table data, cite it using this XML format:
 - Specific number: \`<cite referenceIds="tool_xxx-cell-0-1-number-0">45.2%</cite>\`
 - General observation: \`<cite referenceIds="tool_xxx-cell-0-1">the distribution is heavily skewed</cite>\`
-- Session count: \`<cite referenceIds="tool_xxx-row-header-0-count">1,523 sessions</cite>\`
+- Session count: \`<cite referenceIds="tool_xxx-row-header-0-session-count">1,523 sessions</cite>\`
 - Average duration: \`<cite referenceIds="tool_xxx-row-header-0-duration">2 minutes</cite>\`
 - Funnel duration: \`<cite referenceIds="tool_xxx-cell-0-0-duration-0-1">5 minutes</cite>\`
 - Funnel event count: \`<cite referenceIds="tool_xxx-cell-0-0-count-1-2">3 events</cite>\`

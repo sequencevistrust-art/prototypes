@@ -89,9 +89,9 @@ export function prefixTableIds(table: Table, toolCallId: string): Table {
       ...row,
       rowHeader: {
         ...row.rowHeader,
-        count: {
-          ...row.rowHeader.count,
-          id: `${toolCallId}-${row.rowHeader.count.id}`,
+        sessionCount: {
+          ...row.rowHeader.sessionCount,
+          id: `${toolCallId}-${row.rowHeader.sessionCount.id}`,
         },
         duration: {
           ...row.rowHeader.duration,

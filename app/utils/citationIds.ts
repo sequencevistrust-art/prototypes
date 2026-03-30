@@ -13,7 +13,7 @@ import { createComparisonStep } from "../explain/steps/convertToSteps";
  * enabling graceful degradation when the agent hallucinates a suffix.
  *
  * Reference ID formats (after toolCallId prefix):
- *   ...-row-header-{row}-count[-suffix]  → grid[row][0]
+ *   ...-row-header-{row}-session-count[-suffix]  → grid[row][0]
  *   ...-row-header-{row}-duration[-suffix] → grid[row][1]
  *   ...-cell-{row}-{col}[-suffix]         → grid[row][col+2]
  */
@@ -22,9 +22,9 @@ export function lookupCitationCell(
   refId: string
 ): CitationCell | null {
   // Row header count (check before cell to avoid false match)
-  const countMatch = refId.match(/-row-header-(\d+)-count/);
-  if (countMatch) {
-    const rowIndex = parseInt(countMatch[1], 10);
+  const sessionCountMatch = refId.match(/-row-header-(\d+)-session-count/);
+  if (sessionCountMatch) {
+    const rowIndex = parseInt(sessionCountMatch[1], 10);
     return citationGrid[rowIndex]?.[0] ?? null;
   }
 

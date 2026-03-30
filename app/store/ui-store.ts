@@ -10,7 +10,7 @@ interface PreviewState {
   rowOperations: RowOperation[];
   columnOperations: ColumnOperation[];
   highlightCellIds?: string[]; // Optional cell IDs to highlight (can include -number-N suffix for specific numbers)
-  highlightCountIds?: string[]; // Optional row header count IDs to highlight (format: xxx-row-header-N-count)
+  highlightSessionCountIds?: string[]; // Optional row header session count IDs to highlight (format: xxx-row-header-N-session-count)
   highlightDurationIds?: string[]; // Optional row header duration IDs to highlight (format: xxx-row-header-N-duration)
 }
 

@@ -12,11 +12,11 @@ interface RecordAttributeRowHeaderProps {
   header: RecordAttributeRowHeaderType;
   rowIndex: number;
   isHighlighted?: boolean;
-  isCountHighlighted?: boolean;
+  isSessionCountHighlighted?: boolean;
   isDurationHighlighted?: boolean;
 }
 
-export default function RecordAttributeRowHeader({ header, rowIndex, isHighlighted, isCountHighlighted, isDurationHighlighted }: RecordAttributeRowHeaderProps) {
+export default function RecordAttributeRowHeader({ header, rowIndex, isHighlighted, isSessionCountHighlighted, isDurationHighlighted }: RecordAttributeRowHeaderProps) {
   const { setDrilldownRowIndex } = useUiStore();
   const { recordAttribute } = header;
 
@@ -62,10 +62,10 @@ export default function RecordAttributeRowHeader({ header, rowIndex, isHighlight
               {/* Stats at bottom right */}
               <div className="absolute bottom-4 right-4 flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold">
                 <span className={`px-2 py-1 rounded transition-all duration-200 ${
-                  isCountHighlighted
+                  isSessionCountHighlighted
                     ? 'bg-blue-50 ring-1 ring-blue-300 text-blue-700'
                     : 'text-gray-500'
-                }`}>COUNT: {header.count.value}</span>
+                }`}>SESSIONS: {header.sessionCount.value}</span>
                 <span className={`px-2 py-1 rounded transition-all duration-200 ${
                   isDurationHighlighted
                     ? 'bg-blue-50 ring-1 ring-blue-300 text-blue-700'
