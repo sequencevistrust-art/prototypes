@@ -42,3 +42,4 @@ next-env.d.ts
 
 # debug output
 temp/
+docs/superpowers/

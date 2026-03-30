@@ -60,8 +60,8 @@ export default function RecordAttributeRowHeader({ header, rowIndex, isHighlight
                 />
               </div>
 
-              {/* Stats at bottom right */}
-              <div className="absolute bottom-4 right-4 flex items-center gap-1 text-[10px] uppercase tracking-wider font-semibold">
+              {/* Stats at bottom */}
+              <div className="flex items-center justify-end gap-1 mt-4 text-[10px] uppercase tracking-wider font-semibold">
                 <span className={`px-2 py-1 rounded transition-all duration-200 ${
                   isSessionCountHighlighted
                     ? 'bg-blue-50 ring-1 ring-blue-300 text-blue-700'

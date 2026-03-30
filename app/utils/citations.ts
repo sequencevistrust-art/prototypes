@@ -54,6 +54,7 @@ export function parseReference(reference: string): { ids: string[]; toolCallId: 
   for (const id of ids) {
     const cellMatch = id.match(/^(.+?)-cell-(\d+)-(\d+)/);
     const sessionCountMatch = id.match(/^(.+?)-row-header-(\d+)-session-count(?:-|$)/);
+    const eventCountMatch = id.match(/^(.+?)-row-header-(\d+)-event-count(?:-|$)/);
     const durationMatch = id.match(/^(.+?)-row-header-(\d+)-duration(?:-|$)/);
 
     if (cellMatch) {
@@ -61,6 +62,9 @@ export function parseReference(reference: string): { ids: string[]; toolCallId: 
       break;
     } else if (sessionCountMatch) {
       toolCallId = sessionCountMatch[1];
+      break;
+    } else if (eventCountMatch) {
+      toolCallId = eventCountMatch[1];
       break;
     } else if (durationMatch) {
       toolCallId = durationMatch[1];
