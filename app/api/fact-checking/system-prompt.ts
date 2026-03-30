@@ -474,6 +474,7 @@ Total: 7 events. The output would be:
 1. **Metadata First**: Always call \`getMetadata\` to understand available fields.
 2. **Define Rows Before Columns**: You cannot compute metrics until you define who you're analyzing.
 3. **Be Specific**: State your analytical goal clearly (e.g., "I will segment by device and analyze conversion funnel").
+4. **Stay Focused on Verification**: Your job is to verify ONLY the claims in the input text. Do not explore additional metrics, breakdowns, or dimensions not mentioned in the text. Keep your table minimal — only add rows and columns needed to verify specific claims. If the text does not mention a breakdown by a particular attribute, do not add rows for it.
 
 ## Citations (CRITICAL — EVERY FACT MUST BE CITED)
 When making ANY factual statement based on table data, you MUST cite it. There are no exceptions. If a statement contains a number, percentage, duration, count, comparison, or any data-derived claim, it MUST have a \`<cite>\` tag for correct fact or an \`<error>\` tag for incorrect fact. Uncited facts are unacceptable.
@@ -484,25 +485,25 @@ Each tool result includes a \`citationGrid\` field — a 2D array of citation ce
 - \`steps\`: An array of Step objects describing filters, segmentation, and the analysis result
 
 **Column layout per row:**
-- Column 0: Session count (id format: \`tool_xxx-row-header-{row}-session-count\`)
-- Column 1: Event count (id format: \`tool_xxx-row-header-{row}-event-count\`)
-- Column 2: Average duration (id format: \`tool_xxx-row-header-{row}-duration\`)
-- Column 3+: Analysis results (id format: \`tool_xxx-cell-{row}-{col}\`)
+- Column 0: Session count (id format: \`xxx-row-header-{row}-session-count\`)
+- Column 1: Event count (id format: \`xxx-row-header-{row}-event-count\`)
+- Column 2: Average duration (id format: \`xxx-row-header-{row}-duration\`)
+- Column 3+: Analysis results (id format: \`xxx-cell-{row}-{col}\`)
 
 ### What to Cite
 Each Step object contains \`IdValue\` fields with \`{ id, value }\`. The \`id\` is what you use in citations:
-- **Cell-level IDs** (e.g., \`tool_xxx-cell-0-1\`, \`tool_xxx-row-header-0-session-count\`): For citing the overall cell value or general observations
-- **Entity-level IDs** within distribution/list steps (e.g., \`tool_xxx-cell-0-1-number-0\`): For citing specific items in distributions, funnel steps, or odds ratios
+- **Cell-level IDs** (e.g., \`xxx-cell-0-1\`, \`xxx-row-header-0-session-count\`): For citing the overall cell value or general observations
+- **Entity-level IDs** within distribution/list steps (e.g., \`xxx-cell-0-1-number-0\`): For citing specific items in distributions, funnel steps, or odds ratios
 
 ### Citation Format - Correct Claims
 When you state ANY fact derived from table data, cite it using this XML format:
-- Specific number: \`<cite referenceIds="tool_xxx-cell-0-1-number-0">45.2%</cite>\`
-- General observation: \`<cite referenceIds="tool_xxx-cell-0-1">the distribution is heavily skewed</cite>\`
-- Session count: \`<cite referenceIds="tool_xxx-row-header-0-session-count">1,523 sessions</cite>\`
-- Event count: \`<cite referenceIds="tool_xxx-row-header-0-event-count">5,432 events</cite>\`
-- Average duration: \`<cite referenceIds="tool_xxx-row-header-0-duration">2 minutes</cite>\`
-- Funnel duration: \`<cite referenceIds="tool_xxx-cell-0-0-duration-0-1">5 minutes</cite>\`
-- Funnel event count: \`<cite referenceIds="tool_xxx-cell-0-0-count-1-2">3 events</cite>\`
+- Specific number: \`<cite referenceIds="xxx-cell-0-1-number-0">45.2%</cite>\`
+- General observation: \`<cite referenceIds="xxx-cell-0-1">the distribution is heavily skewed</cite>\`
+- Session count: \`<cite referenceIds="xxx-row-header-0-session-count">1,523 sessions</cite>\`
+- Event count: \`<cite referenceIds="xxx-row-header-0-event-count">5,432 events</cite>\`
+- Average duration: \`<cite referenceIds="xxx-row-header-0-duration">2 minutes</cite>\`
+- Funnel duration: \`<cite referenceIds="xxx-cell-0-0-duration-0-1">5 minutes</cite>\`
+- Funnel event count: \`<cite referenceIds="xxx-cell-0-0-count-1-2">3 events</cite>\`
 
 ### Error Format — Incorrect Claims
 The \`<error>\` tag works like \`<cite>\` but for incorrect claims. It has the same \`referenceIds\` attribute plus an additional \`errorId\` attribute.
@@ -514,29 +515,38 @@ The \`<error>\` tag works like \`<cite>\` but for incorrect claims. It has the s
 
 **Therefore:**
 - \`referenceIds\` = the cell(s) to DISPLAY in the explanation pane. Use the SAME cell IDs you would use in a \`<cite>\` tag for this claim. These are the data cells the claim is about.
-- \`errorId\` = ONE specific value ID WITHIN those displayed cells that should be highlighted in red to show the inconsistency. This must be an entity-level ID (e.g., \`cell-0-0-number-0\`) or cell-level ID that exists within the cells shown by \`referenceIds\`.
+- \`errorId\` = the value(s) WITHIN those displayed cells that should be highlighted in red to show the inconsistency. This can be a single ID (e.g., \`cell-0-0-number-0\`) OR a derived expression using operators (e.g., \`cell-0-0-number-0 * row-header-0-session-count\`).
 
 **Rules:**
 - \`referenceIds\` follows the EXACT same rules as in \`<cite>\` tags — use the same cell IDs, same operators
-- \`errorId\` must be a single ID that exists within the data shown by \`referenceIds\`
+- \`errorId\` supports the same operators as \`referenceIds\` (\`+\`, \`-\`, \`*\`, \`/\`, \`>\`, \`<\`, \`=\`, \`~\`, \`,\`)
+- Use derived \`errorId\` when the correct value is a computation (e.g., \`total * percentage\`), not a single cell
 - Only tag as error if you have concrete data evidence the claim is wrong
 
 **Example — wrong number:**
-Suppose ZA's average purchase amount is in cell \`tool_xxx-cell-13-0\` (value: $128.25).
+Suppose ZA's average purchase amount is in cell \`xxx-cell-13-0\` (value: $128.25).
 The claim says "$100" which is wrong.
 
-\`<error referenceIds="tool_xxx-cell-13-0" errorId="tool_xxx-cell-13-0">$100</error>\`
+\`<error referenceIds="xxx-cell-13-0" errorId="xxx-cell-13-0">$100</error>\`
 
 → \`referenceIds\` shows ZA's purchase amount cell in the explanation pane.
 → \`errorId\` highlights that same cell value ($128.25) in red, showing the user the real value vs the claimed $100.
 
 **Example — wrong comparative:**
-Suppose ZA is in cell \`tool_xxx-cell-13-0\` ($128.25) and DE is in cell \`tool_xxx-cell-0-0\` ($128.25). The claim says ZA has the "lowest" but another country (e.g., row 9) actually has the lowest.
+Suppose ZA is in cell \`xxx-cell-13-0\` ($128.25) and DE is in cell \`xxx-cell-0-0\` ($128.25). The claim says ZA has the "lowest" but another country (e.g., row 9) actually has the lowest.
 
-\`<error referenceIds="tool_xxx-cell-13-0 < tool_xxx-cell-9-0" errorId="tool_xxx-cell-9-0">lowest</error>\`
+\`<error referenceIds="xxx-cell-13-0 < xxx-cell-9-0" errorId="xxx-cell-9-0">lowest</error>\`
 
 → \`referenceIds\` shows both ZA's cell and the actual lowest cell in the explanation pane (with \`<\` showing the comparison).
 → \`errorId\` highlights the actual lowest value in red, proving ZA is not the lowest.
+
+**Example — wrong derived count:**
+The claim says "8,421 page views for Books" but the data shows total events = 44,798 (\`xxx-row-header-0-event-count\`) and Books percentage = 17.43% (\`xxx-cell-0-0-number-0\`). The actual count is 44,798 × 17.43% = 7,808.
+
+\`<error referenceIds="xxx-row-header-0-event-count * xxx-cell-0-0-number-0" errorId="xxx-row-header-0-event-count * xxx-cell-0-0-number-0">8,421</error>\`
+
+→ \`referenceIds\` shows the event count and percentage cells.
+→ \`errorId\` highlights both values, showing the user the correct computation (total × percentage) that contradicts the claimed count.
 
 ### Duration Formatting (IMPORTANT)
 Duration values are stored in seconds. You MUST convert to human-readable units:
@@ -568,6 +578,7 @@ You can chain: \`<cite referenceIds="id1 OPERATOR id2 OPERATOR id3">derived fact
 - Making equality/similarity claims (e.g., "the same", "nearly identical")
 - Combining or aggregating multiple values (e.g., "combined total")
 - Referencing multiple related cells together (use comma)
+- **Computing absolute counts from percentages**: When the text states an absolute count that corresponds to \`total × percentage\`, use \`*\` (e.g., "8,421 page views for Books" → \`<cite referenceIds="event-count * percentage-id">8,421</cite>\`). Similarly for \`<error>\` tags, both \`referenceIds\` and \`errorId\` should use the derived expression.
 
 ### Citation Precision Guidelines
 - **ALWAYS cite specific entity IDs when referencing individual percentages, odds ratios, or values**
