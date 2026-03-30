@@ -13,6 +13,7 @@ interface PatternRowHeaderProps {
   rowIndex: number;
   isHighlighted?: boolean;
   isSessionCountHighlighted?: boolean;
+  isEventCountHighlighted?: boolean;
   isDurationHighlighted?: boolean;
 }
 
@@ -25,7 +26,7 @@ function isAllDataPattern(header: PatternRowHeaderType): boolean {
   return false;
 }
 
-export default function PatternRowHeader({ header, rowIndex, isHighlighted, isSessionCountHighlighted, isDurationHighlighted }: PatternRowHeaderProps) {
+export default function PatternRowHeader({ header, rowIndex, isHighlighted, isSessionCountHighlighted, isEventCountHighlighted, isDurationHighlighted }: PatternRowHeaderProps) {
   const { setDrilldownRowIndex } = useUiStore();
   const isAllData = isAllDataPattern(header);
 
@@ -97,6 +98,11 @@ export default function PatternRowHeader({ header, rowIndex, isHighlighted, isSe
                     ? 'bg-blue-50 ring-1 ring-blue-300 text-blue-700'
                     : 'text-gray-500'
                 }`}>SESSIONS: {header.sessionCount.value}</span>
+                <span className={`px-2 py-1 rounded transition-all duration-200 ${
+                  isEventCountHighlighted
+                    ? 'bg-blue-50 ring-1 ring-blue-300 text-blue-700'
+                    : 'text-gray-500'
+                }`}>EVENTS: {header.eventCount.value}</span>
                 <span className={`px-2 py-1 rounded transition-all duration-200 ${
                   isDurationHighlighted
                     ? 'bg-blue-50 ring-1 ring-blue-300 text-blue-700'

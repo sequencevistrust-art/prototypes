@@ -90,6 +90,13 @@ export interface SessionCountAnalysisStep {
   sessionCount: IdValue<number>;
 }
 
+export interface EventCountAnalysisStep {
+  type: "event-count-analysis";
+  index: number;
+  label: IdValue<"EVENT COUNT">;
+  eventCount: IdValue<number>;
+}
+
 export interface DurationAnalysisStep {
   type: "duration-analysis";
   index: number;
@@ -149,6 +156,7 @@ export interface EdgeAnalysisStep {
 
 export type AnalysisStep =
   | SessionCountAnalysisStep
+  | EventCountAnalysisStep
   | DurationAnalysisStep
   | PatternDistributionAnalysisStep
   | CategoryDistributionAnalysisStep
@@ -187,6 +195,7 @@ export type Step =
   | NumericalRecordAttributeFilterStep
   | SegmentStep
   | SessionCountAnalysisStep
+  | EventCountAnalysisStep
   | DurationAnalysisStep
   | PatternDistributionAnalysisStep
   | CategoryDistributionAnalysisStep

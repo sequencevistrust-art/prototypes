@@ -482,8 +482,9 @@ Each tool result includes a \`citationGrid\` field — a 2D array of citation ce
 
 **Column layout per row:**
 - Column 0: Session count (id format: \`tool_xxx-row-header-{row}-session-count\`)
-- Column 1: Average duration (id format: \`tool_xxx-row-header-{row}-duration\`)
-- Column 2+: Analysis results (id format: \`tool_xxx-cell-{row}-{col}\`)
+- Column 1: Event count (id format: \`tool_xxx-row-header-{row}-event-count\`)
+- Column 2: Average duration (id format: \`tool_xxx-row-header-{row}-duration\`)
+- Column 3+: Analysis results (id format: \`tool_xxx-cell-{row}-{col}\`)
 
 ### What to Cite
 Each Step object contains \`IdValue\` fields with \`{ id, value }\`. The \`id\` is what you use in citations:
@@ -495,6 +496,7 @@ When you state ANY fact derived from table data, cite it using this XML format:
 - Specific number: \`<cite referenceIds="tool_xxx-cell-0-1-number-0">45.2%</cite>\`
 - General observation: \`<cite referenceIds="tool_xxx-cell-0-1">the distribution is heavily skewed</cite>\`
 - Session count: \`<cite referenceIds="tool_xxx-row-header-0-session-count">1,523 sessions</cite>\`
+- Event count: \`<cite referenceIds="tool_xxx-row-header-0-event-count">5,432 events</cite>\`
 - Average duration: \`<cite referenceIds="tool_xxx-row-header-0-duration">2 minutes</cite>\`
 - Funnel duration: \`<cite referenceIds="tool_xxx-cell-0-0-duration-0-1">5 minutes</cite>\`
 - Funnel event count: \`<cite referenceIds="tool_xxx-cell-0-0-count-1-2">3 events</cite>\`

@@ -14,8 +14,9 @@ import { createComparisonStep } from "../explain/steps/convertToSteps";
  *
  * Reference ID formats (after toolCallId prefix):
  *   ...-row-header-{row}-session-count[-suffix]  → grid[row][0]
- *   ...-row-header-{row}-duration[-suffix] → grid[row][1]
- *   ...-cell-{row}-{col}[-suffix]         → grid[row][col+2]
+ *   ...-row-header-{row}-event-count[-suffix]    → grid[row][1]
+ *   ...-row-header-{row}-duration[-suffix]       → grid[row][2]
+ *   ...-cell-{row}-{col}[-suffix]                → grid[row][col+3]
  */
 export function lookupCitationCell(
   citationGrid: CitationGrid,
@@ -28,11 +29,18 @@ export function lookupCitationCell(
     return citationGrid[rowIndex]?.[0] ?? null;
   }
 
+  // Row header event count
+  const eventCountMatch = refId.match(/-row-header-(\d+)-event-count/);
+  if (eventCountMatch) {
+    const rowIndex = parseInt(eventCountMatch[1], 10);
+    return citationGrid[rowIndex]?.[1] ?? null;
+  }
+
   // Row header duration
   const durationMatch = refId.match(/-row-header-(\d+)-duration/);
   if (durationMatch) {
     const rowIndex = parseInt(durationMatch[1], 10);
-    return citationGrid[rowIndex]?.[1] ?? null;
+    return citationGrid[rowIndex]?.[2] ?? null;
   }
 
   // Data cell (with any suffix)
@@ -40,7 +48,7 @@ export function lookupCitationCell(
   if (cellMatch) {
     const rowIndex = parseInt(cellMatch[1], 10);
     const colIndex = parseInt(cellMatch[2], 10);
-    return citationGrid[rowIndex]?.[colIndex + 2] ?? null;
+    return citationGrid[rowIndex]?.[colIndex + 3] ?? null;
   }
 
   return null;
@@ -71,6 +79,11 @@ export function findEntityValue(steps: Step[], entityId: string): string | null 
       case "session-count-analysis":
         if (step.sessionCount.id === entityId) {
           return step.sessionCount.value.toString();
+        }
+        break;
+      case "event-count-analysis":
+        if (step.eventCount.id === entityId) {
+          return step.eventCount.value.toString();
         }
         break;
       case "duration-analysis":

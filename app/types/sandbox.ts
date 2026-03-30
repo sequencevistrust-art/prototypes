@@ -67,6 +67,7 @@ export interface PatternRowHeader {
   pattern: EventAttribute[];
   appliedFilters: FilterOperation[];
   sessionCount: { id: string; value: number };
+  eventCount: { id: string; value: number };
   duration: { id: string; value: number }; // Average duration in seconds between start and end events (0 if fewer than 2 events)
 }
 
@@ -79,6 +80,7 @@ export interface RecordAttributeRowHeader {
   recordAttribute: Attribute;
   appliedFilters: FilterOperation[];
   sessionCount: { id: string; value: number };
+  eventCount: { id: string; value: number };
   duration: { id: string; value: number }; // Average duration in seconds between start and end events (0 if fewer than 2 events)
 }
 

@@ -17,6 +17,7 @@ export {
   type FilterStep,
   type SegmentStep,
   type SessionCountAnalysisStep,
+  type EventCountAnalysisStep,
   type DurationAnalysisStep,
   type PatternDistributionAnalysisStep,
   type CategoryDistributionAnalysisStep,

@@ -36,7 +36,21 @@ export function buildCitationGrid(table: Table, toolCallId: string): CitationGri
     const countSteps = convertToSteps([countRefCell], [], countGen);
     rowCells.push({ id: countCellId, steps: countSteps });
 
-    // Col 1: Average duration
+    // Col 1: Event count
+    const eventCountCellId = `${toolCallId}-row-header-${rowIndex}-event-count`;
+    const eventCountGen = new CitationIdGenerator(toolCallId, `row-header-${rowIndex}-event-count`);
+    const eventCountRefCell: ReferencedCell = {
+      id: eventCountCellId,
+      type: "row-header-event-count",
+      data: row.rowHeader,
+      rowHeader: row.rowHeader,
+      rowIndex,
+      colIndex: -1,
+    };
+    const eventCountSteps = convertToSteps([eventCountRefCell], [], eventCountGen);
+    rowCells.push({ id: eventCountCellId, steps: eventCountSteps });
+
+    // Col 2: Average duration
     const durationCellId = `${toolCallId}-row-header-${rowIndex}-duration`;
     const durationGen = new CitationIdGenerator(toolCallId, `row-header-${rowIndex}-duration`);
     const durationRefCell: ReferencedCell = {
@@ -50,7 +64,7 @@ export function buildCitationGrid(table: Table, toolCallId: string): CitationGri
     const durationSteps = convertToSteps([durationRefCell], [], durationGen);
     rowCells.push({ id: durationCellId, steps: durationSteps });
 
-    // Col 2+: Data cells
+    // Col 3+: Data cells
     for (let colIndex = 0; colIndex < row.cells.length; colIndex++) {
       const cell = row.cells[colIndex];
       const cellId = `${toolCallId}-cell-${rowIndex}-${colIndex}`;

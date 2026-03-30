@@ -7,6 +7,7 @@ import CategoricalRecordAttributeFilterStep from "./CategoricalRecordAttributeFi
 import NumericalRecordAttributeFilterStep from "./NumericalRecordAttributeFilterStep";
 import SegmentStep from "./SegmentStep";
 import SessionCountAnalysisStep from "./SessionCountAnalysisStep";
+import EventCountAnalysisStep from "./EventCountAnalysisStep";
 import DurationAnalysisStep from "./DurationAnalysisStep";
 import PatternDistributionAnalysisStep from "./PatternDistributionAnalysisStep";
 import CategoryDistributionAnalysisStep from "./CategoryDistributionAnalysisStep";
@@ -44,6 +45,9 @@ export default function StepRenderer({
 
     case "session-count-analysis":
       return <SessionCountAnalysisStep step={step} />;
+
+    case "event-count-analysis":
+      return <EventCountAnalysisStep step={step} />;
 
     case "duration-analysis":
       return <DurationAnalysisStep step={step} />;

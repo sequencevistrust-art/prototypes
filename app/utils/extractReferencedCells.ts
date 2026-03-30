@@ -2,7 +2,7 @@ import { Table, Cell, RowHeader } from "../types/sandbox";
 
 export interface ReferencedCell {
   id: string;
-  type: Cell["type"] | "row-header" | "row-header-session-count" | "row-header-duration";
+  type: Cell["type"] | "row-header" | "row-header-session-count" | "row-header-event-count" | "row-header-duration";
   data: Cell | RowHeader;
   rowHeader: RowHeader;
   rowIndex: number;
@@ -21,6 +21,7 @@ export interface ReferencedCell {
  * - Cell with duration: "{toolCallId}-cell-{row}-{col}-duration-{fromIdx}-{toIdx}"
  * - Cell with count: "{toolCallId}-cell-{row}-{col}-count-{fromIdx}-{toIdx}"
  * - Row header count: "{toolCallId}-row-header-{row}-session-count"
+ * - Row header event count: "{toolCallId}-row-header-{row}-event-count"
  * - Row header duration: "{toolCallId}-row-header-{row}-duration"
  *
  * @param table The table containing the cells
@@ -42,6 +43,8 @@ export function extractReferencedCells(
     const cellMatch = refId.match(/-cell-(\d+)-(\d+)(?:-number-(\d+))?$/);
     // Try to match row header count ID format: "...-row-header-{row}-session-count"
     const sessionCountMatch = refId.match(/-row-header-(\d+)-session-count$/);
+    // Try to match row header event count ID format: "...-row-header-{row}-event-count"
+    const eventCountMatch = refId.match(/-row-header-(\d+)-event-count$/);
     // Try to match row header duration ID format: "...-row-header-{row}-duration"
     const durationMatch = refId.match(/-row-header-(\d+)-duration$/);
 
@@ -105,6 +108,19 @@ export function extractReferencedCells(
         results.push({
           id: refId,
           type: "row-header-session-count",
+          data: row.rowHeader,
+          rowHeader: row.rowHeader,
+          rowIndex,
+          colIndex: -1,
+        });
+      }
+    } else if (eventCountMatch) {
+      const rowIndex = parseInt(eventCountMatch[1], 10);
+      const row = table.rows[rowIndex];
+      if (row) {
+        results.push({
+          id: refId,
+          type: "row-header-event-count",
           data: row.rowHeader,
           rowHeader: row.rowHeader,
           rowIndex,

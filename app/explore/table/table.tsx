@@ -21,6 +21,7 @@ function RowHeaderCell({
   rowIndex,
   isHighlighted,
   isSessionCountHighlighted,
+  isEventCountHighlighted,
   isDurationHighlighted,
   rowHeaderRef,
 }: {
@@ -28,6 +29,7 @@ function RowHeaderCell({
   rowIndex: number;
   isHighlighted?: boolean;
   isSessionCountHighlighted?: boolean;
+  isEventCountHighlighted?: boolean;
   isDurationHighlighted?: boolean;
   rowHeaderRef?: React.RefObject<HTMLDivElement | null>;
 }) {
@@ -55,7 +57,7 @@ function RowHeaderCell({
     return (
       <div ref={rowHeaderRef} className={wrapperClass}>
         <div className="bg-gray-50 h-full border-r border-gray-200">
-          <PatternRowHeader header={rowHeader} rowIndex={rowIndex} isHighlighted={isHighlighted} isSessionCountHighlighted={isSessionCountHighlighted} isDurationHighlighted={isDurationHighlighted} />
+          <PatternRowHeader header={rowHeader} rowIndex={rowIndex} isHighlighted={isHighlighted} isSessionCountHighlighted={isSessionCountHighlighted} isEventCountHighlighted={isEventCountHighlighted} isDurationHighlighted={isDurationHighlighted} />
         </div>
       </div>
     );
@@ -65,7 +67,7 @@ function RowHeaderCell({
     return (
       <div ref={rowHeaderRef} className={wrapperClass}>
         <div className="bg-gray-50 h-full border-r border-gray-200">
-          <RecordAttributeRowHeader header={rowHeader} rowIndex={rowIndex} isHighlighted={isHighlighted} isSessionCountHighlighted={isSessionCountHighlighted} isDurationHighlighted={isDurationHighlighted} />
+          <RecordAttributeRowHeader header={rowHeader} rowIndex={rowIndex} isHighlighted={isHighlighted} isSessionCountHighlighted={isSessionCountHighlighted} isEventCountHighlighted={isEventCountHighlighted} isDurationHighlighted={isDurationHighlighted} />
         </div>
       </div>
     );
@@ -193,6 +195,7 @@ export default function DataTable({ table }: DataTableProps) {
   const { previewData } = useUiStore();
   const highlightCellIds = previewData?.highlightCellIds ?? [];
   const highlightSessionCountIds = previewData?.highlightSessionCountIds ?? [];
+  const highlightEventCountIds = previewData?.highlightEventCountIds ?? [];
   const highlightDurationIds = previewData?.highlightDurationIds ?? [];
   const highlightedCellRef = React.useRef<HTMLDivElement | null>(null);
   const highlightedRowHeaderRef = React.useRef<HTMLDivElement | null>(null);
@@ -212,7 +215,7 @@ export default function DataTable({ table }: DataTableProps) {
 
   // Scroll to first highlighted row header (count or duration) when it changes
   React.useEffect(() => {
-    if ((highlightSessionCountIds.length > 0 || highlightDurationIds.length > 0) && highlightedRowHeaderRef.current) {
+    if ((highlightSessionCountIds.length > 0 || highlightEventCountIds.length > 0 || highlightDurationIds.length > 0) && highlightedRowHeaderRef.current) {
       setTimeout(() => {
         highlightedRowHeaderRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -221,7 +224,7 @@ export default function DataTable({ table }: DataTableProps) {
         });
       }, 300); // Small delay to ensure rendering is complete
     }
-  }, [highlightSessionCountIds, highlightDurationIds]);
+  }, [highlightSessionCountIds, highlightEventCountIds, highlightDurationIds]);
 
   const numColumns = Math.max(...table.rows.map((row) => row.cells.length), 0);
   const numRows = table.rows.length;
@@ -235,8 +238,9 @@ export default function DataTable({ table }: DataTableProps) {
             const totalCellsInRow = 1 + Math.max(row.cells.length, numColumns); // 1 for header + cells
             // Check if this row's count or duration is highlighted (prefix match for sub-element IDs)
             const isSessionCountHighlighted = highlightSessionCountIds.some(id => id === row.rowHeader.sessionCount.id || id.startsWith(row.rowHeader.sessionCount.id + '-'));
+            const isEventCountHighlighted = highlightEventCountIds.some(id => id === row.rowHeader.eventCount.id || id.startsWith(row.rowHeader.eventCount.id + '-'));
             const isDurationHighlighted = highlightDurationIds.some(id => id === row.rowHeader.duration.id || id.startsWith(row.rowHeader.duration.id + '-'));
-            const isRowHeaderHighlighted = isSessionCountHighlighted || isDurationHighlighted;
+            const isRowHeaderHighlighted = isSessionCountHighlighted || isEventCountHighlighted || isDurationHighlighted;
             const rowHeaderRef = isRowHeaderHighlighted ? highlightedRowHeaderRef : undefined;
 
             return (
@@ -252,6 +256,7 @@ export default function DataTable({ table }: DataTableProps) {
                     rowIndex={rowIndex}
                     isHighlighted={isRowHeaderHighlighted}
                     isSessionCountHighlighted={isSessionCountHighlighted}
+                    isEventCountHighlighted={isEventCountHighlighted}
                     isDurationHighlighted={isDurationHighlighted}
                     rowHeaderRef={rowHeaderRef}
                   />

@@ -11,6 +11,7 @@ interface PreviewState {
   columnOperations: ColumnOperation[];
   highlightCellIds?: string[]; // Optional cell IDs to highlight (can include -number-N suffix for specific numbers)
   highlightSessionCountIds?: string[]; // Optional row header session count IDs to highlight (format: xxx-row-header-N-session-count)
+  highlightEventCountIds?: string[]; // Optional row header event count IDs to highlight (format: xxx-row-header-N-event-count)
   highlightDurationIds?: string[]; // Optional row header duration IDs to highlight (format: xxx-row-header-N-duration)
 }
 

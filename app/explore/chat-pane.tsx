@@ -259,15 +259,19 @@ export default function ChatPane({ headerAction }: ChatPaneProps) {
   const handleCitationClick = (toolCallId: string, ids: string[], reference: string) => {
     const cellIds: string[] = [];
     const sessionCountIds: string[] = [];
+    const eventCountIds: string[] = [];
     const durationIds: string[] = [];
 
     for (const id of ids) {
       const sessionCountMatch = id.match(/^(.+?)-row-header-(\d+)-session-count(?:-|$)/);
+      const eventCountMatch = id.match(/^(.+?)-row-header-(\d+)-event-count(?:-|$)/);
       const durationMatch = id.match(/^(.+?)-row-header-(\d+)-duration(?:-|$)/);
       const cellMatch = id.match(/^(.+?)-cell-(\d+)-(\d+)/);
 
       if (sessionCountMatch) {
         if (!sessionCountIds.includes(id)) sessionCountIds.push(id);
+      } else if (eventCountMatch) {
+        if (!eventCountIds.includes(id)) eventCountIds.push(id);
       } else if (durationMatch) {
         if (!durationIds.includes(id)) durationIds.push(id);
       } else if (cellMatch) {
@@ -314,6 +318,7 @@ export default function ChatPane({ headerAction }: ChatPaneProps) {
       columnOperations: operations.columnOperations,
       highlightCellIds: cellIds.length > 0 ? cellIds : undefined,
       highlightSessionCountIds: sessionCountIds.length > 0 ? sessionCountIds : undefined,
+      highlightEventCountIds: eventCountIds.length > 0 ? eventCountIds : undefined,
       highlightDurationIds: durationIds.length > 0 ? durationIds : undefined,
     });
 

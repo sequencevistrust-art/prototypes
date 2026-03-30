@@ -16,6 +16,7 @@ import {
   generateRowCells,
   recalculateSegments,
   calculateAverageDuration,
+  calculateEventCount,
 } from "./sandboxOperations";
 import {
   filterByPattern,
@@ -109,6 +110,7 @@ async function handleAddOneRowOperation(
       pattern: operation.pattern,
       appliedFilters: activeFilters,
       sessionCount: { id: `row-header-${newRowIndex}-session-count`, value: newSegmentList.length },
+      eventCount: { id: `row-header-${newRowIndex}-event-count`, value: calculateEventCount(newSegmentList) },
       duration: { id: `row-header-${newRowIndex}-duration`, value: calculateAverageDuration(newSegmentList) },
     };
   } else if (operation.subType === "add-one-row-by-record-attribute") {
@@ -129,6 +131,7 @@ async function handleAddOneRowOperation(
           : operation.recordAttribute,
       appliedFilters: activeFilters,
       sessionCount: { id: `row-header-${newRowIndex}-session-count`, value: newSegmentList.length },
+      eventCount: { id: `row-header-${newRowIndex}-event-count`, value: calculateEventCount(newSegmentList) },
       duration: { id: `row-header-${newRowIndex}-duration`, value: calculateAverageDuration(newSegmentList) },
     };
   } else {
@@ -195,6 +198,7 @@ async function handleAddMultipleRowsOperation(
           pattern: pattern.pattern,
           appliedFilters: activeFilters,
           sessionCount: { id: `row-header-${rowIndex}-session-count`, value: segmentList.length },
+          eventCount: { id: `row-header-${rowIndex}-event-count`, value: calculateEventCount(segmentList) },
           duration: { id: `row-header-${rowIndex}-duration`, value: calculateAverageDuration(segmentList) },
         },
         cells,
@@ -241,6 +245,7 @@ async function handleAddMultipleRowsOperation(
           },
           appliedFilters: activeFilters,
           sessionCount: { id: `row-header-${rowIndex}-session-count`, value: segmentList.length },
+          eventCount: { id: `row-header-${rowIndex}-event-count`, value: calculateEventCount(segmentList) },
           duration: { id: `row-header-${rowIndex}-duration`, value: calculateAverageDuration(segmentList) },
         },
         cells,

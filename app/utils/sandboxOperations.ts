@@ -63,6 +63,13 @@ export function calculateAverageDuration(sequences: EventSequence[]): number {
 }
 
 /**
+ * Calculate the total number of events across all sequences
+ */
+export function calculateEventCount(sequences: EventSequence[]): number {
+  return sequences.reduce((sum, seq) => sum + seq.events.length, 0);
+}
+
+/**
  * Get all active filter operations from steps
  */
 export function getActiveFilters(steps: OperationWithId[]): FilterOperation[] {
@@ -322,6 +329,7 @@ export async function recalculateSegments(
         pattern: op.pattern,
         appliedFilters: activeFilters,
         sessionCount: { id: `row-header-${currentRowIndex}-session-count`, value: filtered.length },
+        eventCount: { id: `row-header-${currentRowIndex}-event-count`, value: calculateEventCount(filtered) },
         duration: { id: `row-header-${currentRowIndex}-duration`, value: calculateAverageDuration(filtered) },
       });
       currentRowIndex++;
@@ -358,6 +366,7 @@ export async function recalculateSegments(
             : op.recordAttribute,
         appliedFilters: activeFilters,
         sessionCount: { id: `row-header-${currentRowIndex}-session-count`, value: filtered.length },
+        eventCount: { id: `row-header-${currentRowIndex}-event-count`, value: calculateEventCount(filtered) },
         duration: { id: `row-header-${currentRowIndex}-duration`, value: calculateAverageDuration(filtered) },
       });
       currentRowIndex++;
@@ -384,6 +393,7 @@ export async function recalculateSegments(
           pattern: pattern.pattern,
           appliedFilters: activeFilters,
           sessionCount: { id: `row-header-${currentRowIndex}-session-count`, value: filtered.length },
+          eventCount: { id: `row-header-${currentRowIndex}-event-count`, value: calculateEventCount(filtered) },
           duration: { id: `row-header-${currentRowIndex}-duration`, value: calculateAverageDuration(filtered) },
         });
         currentRowIndex++;
@@ -422,6 +432,7 @@ export async function recalculateSegments(
           },
           appliedFilters: activeFilters,
           sessionCount: { id: `row-header-${currentRowIndex}-session-count`, value: segmentList.length },
+          eventCount: { id: `row-header-${currentRowIndex}-event-count`, value: calculateEventCount(segmentList) },
           duration: { id: `row-header-${currentRowIndex}-duration`, value: calculateAverageDuration(segmentList) },
         });
         currentRowIndex++;

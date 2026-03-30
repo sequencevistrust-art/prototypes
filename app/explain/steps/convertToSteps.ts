@@ -11,6 +11,7 @@ import {
   NumericalRecordAttributeFilterStep,
   SegmentStep,
   SessionCountAnalysisStep,
+  EventCountAnalysisStep,
   DurationAnalysisStep,
   PatternDistributionAnalysisStep,
   CategoryDistributionAnalysisStep,
@@ -398,12 +399,12 @@ function convertCellToAnalysisStep(
 }
 
 /**
- * Convert row header to session count/duration analysis steps.
+ * Convert row header to session count/event count/duration analysis steps.
  */
 function convertRowHeaderToAnalysisSteps(
   gen: CitationIdGenerator,
   rowHeader: RowHeader,
-  refType: "row-header" | "row-header-session-count" | "row-header-duration",
+  refType: "row-header" | "row-header-session-count" | "row-header-event-count" | "row-header-duration",
   index: number,
 ): Step[] {
   const steps: Step[] = [];
@@ -418,8 +419,19 @@ function convertRowHeaderToAnalysisSteps(
     steps.push(step);
   }
 
+  if (refType === "row-header" || refType === "row-header-event-count") {
+    const stepIndex = refType === "row-header-event-count" ? index : index + steps.length;
+    const step: EventCountAnalysisStep = {
+      type: "event-count-analysis",
+      index: stepIndex,
+      label: { id: gen.stepId(stepIndex, 'label'), value: "EVENT COUNT" as const },
+      eventCount: { id: gen.dataId(rowHeader.eventCount.id), value: rowHeader.eventCount.value },
+    };
+    steps.push(step);
+  }
+
   if (refType === "row-header" || refType === "row-header-duration") {
-    const stepIndex = refType === "row-header" ? index + 1 : index;
+    const stepIndex = refType === "row-header" ? index + steps.length : index;
     const step: DurationAnalysisStep = {
       type: "duration-analysis",
       index: stepIndex,
@@ -482,6 +494,7 @@ export function convertToSteps(
     const isRowHeader =
       refCell.type === "row-header" ||
       refCell.type === "row-header-session-count" ||
+      refCell.type === "row-header-event-count" ||
       refCell.type === "row-header-duration";
 
     // Check for pattern with segment
@@ -532,7 +545,7 @@ export function convertToSteps(
       const analysisSteps = convertRowHeaderToAnalysisSteps(
         gen,
         refCell.rowHeader,
-        refCell.type as "row-header" | "row-header-session-count" | "row-header-duration",
+        refCell.type as "row-header" | "row-header-session-count" | "row-header-event-count" | "row-header-duration",
         currentIndex,
       );
       steps.push(...analysisSteps);
@@ -557,6 +570,12 @@ export function convertToSteps(
         return {
           id: gen.dataId(refCell.rowHeader.sessionCount.id),
           value: refCell.rowHeader.sessionCount.value.toString(),
+        };
+      }
+      if (refCell.type === "row-header-event-count") {
+        return {
+          id: gen.dataId(refCell.rowHeader.eventCount.id),
+          value: refCell.rowHeader.eventCount.value.toString(),
         };
       }
       if (refCell.type === "row-header-duration") {
