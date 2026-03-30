@@ -6,9 +6,31 @@ import { Table, OperationWithId } from "./sandbox";
 import { Operation } from "./operations";
 import { CitationGrid } from "./citation";
 import { Citation } from "../utils/citations";
+import { Step } from "./steps";
 
 // Re-export Citation for convenience
 export type { Citation };
+
+// Explanation map: reference ID -> explanation steps
+export type ExplanationMap = Record<string, Step[]>;
+
+// Data passed to parent when citation is hovered
+export interface CitationHoverData {
+  toolCallId: string;
+  ids: string[];
+  reference: string; // The full reference string to parse operators
+  // toolCallResult is absent for manually-added citations (user highlight flow)
+  toolCallResult?: {
+    table: Table;
+    steps: OperationWithId[];
+    citationGrid?: CitationGrid;
+  };
+  highlightedText: string;
+  // Cached explanation steps with stable IDs
+  explanationSteps?: Step[];
+  // For manually-added citations: LLM-generated data source explanation
+  reason?: string;
+}
 
 /**
  * Result shape returned by tool calls that produce table data.
@@ -54,6 +76,8 @@ export interface Message {
   id: string;
   role: "user" | "assistant";
   parts: MessagePart[];
+  // Optional cached explanation map: reference ID -> explanation steps
+  explanationMap?: ExplanationMap;
 }
 
 // ===== Stream chunk types =====

@@ -4,17 +4,18 @@ import { useState, useRef, useEffect, useCallback, FormEvent, MouseEvent as Reac
 import { Search, FileText, CheckCircle, AlertCircle, Bot, Send } from "lucide-react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { FactCheckMarkdownRenderer } from "./markdown-renderer";
-import ExplanationPopup from "../explain/explanation-popup";
-import { parseCitations, parseReference, buildExplanationMap } from "../explain/chat-utils";
+import ExplanationPopup from "../components/explanation-popup";
+import { parseCitations, parseReference } from "../utils/citations";
+import { buildExplanationMap } from "../utils/explanationMap";
 import { extractReferencedCells } from "../utils/extractReferencedCells";
 import { Table, OperationWithId } from "../types/sandbox";
 import DebugToggle from "../debug-toggle";
-import { getToolCallLabel } from "../explain/tool-call-bar";
+import { getToolCallLabel } from "../utils/toolLabels";
 import { useUiStore } from "../store/ui-store";
-import { ToolCall as ToolCallType } from "../explain/chat-types";
-import { Step } from "../explain/steps";
+import { ToolCall as ToolCallType } from "../types/chat";
+import { Step } from "../types/steps";
 import { CitationGrid } from "../types/citation";
-import { Message, MessagePart, StreamChunk } from "../explain/chat-types";
+import { Message, MessagePart, StreamChunk } from "../types/chat";
 
 interface PopupData {
   referencedCells: ReturnType<typeof extractReferencedCells>;

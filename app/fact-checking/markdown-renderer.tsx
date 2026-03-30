@@ -2,9 +2,9 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
-import CitedText from "../explain/cited-text";
-import { Citation } from "../explain/chat-types";
-import { parseReference } from "../explain/chat-utils";
+import CitedText from "../components/cited-text";
+import { Citation } from "../utils/citations";
+import { parseReference } from "../utils/citations";
 import { MouseEvent as ReactMouseEvent } from "react";
 
 interface FactCheckMarkdownRendererProps {

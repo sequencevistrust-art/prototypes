@@ -3,6 +3,7 @@
 import { Plus, Minus, X as Multiply, Divide, Equal, Info } from "lucide-react";
 import StepNumber from "../step-number";
 import { ComparisonStep as ComparisonStepType } from "./types";
+import { useComparisonErrorIds } from "./HighlightIdsContext";
 
 interface ComparisonStepProps {
   step: ComparisonStepType;
@@ -31,7 +32,11 @@ function OperatorIcon({ op }: { op: string }) {
 }
 
 export default function ComparisonStep({ step }: ComparisonStepProps) {
-  const { values, operators } = step;
+  const { values, operators, sourceIds } = step;
+  const comparisonErrorIds = useComparisonErrorIds();
+
+  // Check if any source IDs match comparison error IDs
+  const hasError = sourceIds?.some(id => comparisonErrorIds.has(id)) ?? false;
 
   // Determine if it's a comparison or arithmetic operation
   const isComparison = operators.some((op) =>
@@ -127,7 +132,7 @@ export default function ComparisonStep({ step }: ComparisonStepProps) {
                 <Equal className="w-4 h-4 text-slate-300" />
 
                 <div className="flex flex-col items-center">
-                  <span className="text-xl font-light text-slate-800 tabular-nums tracking-tight">
+                  <span className={`text-xl font-light tabular-nums tracking-tight ${hasError ? "text-red-600 font-medium underline decoration-red-400 decoration-wavy" : "text-slate-800"}`}>
                     {formatValue(result)}
                   </span>
                 </div>

@@ -173,6 +173,7 @@ export interface ComparisonStep {
   index: number;
   label: IdValue<"Based on the above...">;
   values: IdValue<string>[];
+  sourceIds?: string[]; // Original cell IDs, parallel to values — used by ComparisonStep for error highlighting
   operators: IdValue<string>[];
 }
 

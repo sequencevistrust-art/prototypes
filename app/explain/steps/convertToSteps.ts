@@ -459,6 +459,7 @@ export function createComparisonStep(
     index,
     label: idValue(gen, "Based on the above..." as const),
     values: values.map((v) => idValue(gen, v.value)),
+    sourceIds: values.map((v) => v.id),
     operators: operators.map((op) => idValue(gen, op)),
   };
 }
