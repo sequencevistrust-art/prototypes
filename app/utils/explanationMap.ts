@@ -1,9 +1,9 @@
 import { MessagePart, Message, ExplanationMap } from "../types/chat";
 import { Step, PrefixedIdGenerator } from "../types/steps";
-import { lookupCitationCell, highlightEntityInSteps, findEntityValue } from "./citationIds";
+import { lookupCitationCellAcrossGrids, highlightEntityInSteps, findEntityValue, parseGrouping, isLiteralNumber } from "./citationIds";
 import { createComparisonStep } from "../explain/steps/convertToSteps";
 import { CitationGrid } from "../types/citation";
-import { DERIVED_OPERATORS, parseReference } from "./citations";
+import { DERIVED_OPERATORS, parseReference, normalizeReference } from "./citations";
 
 export type { ExplanationMap };
 
@@ -77,37 +77,28 @@ export function buildExplanationMap(
 
   const explanationMap: ExplanationMap = {};
 
+  // Collect all citation grids from all tool call results
+  const allGrids = new Map<string, CitationGrid>();
+  for (const msg of allMessages) {
+    if (msg.role !== "assistant") continue;
+    for (const part of msg.parts) {
+      if (part.type === "tool-call" && part.toolCall.result?.citationGrid) {
+        allGrids.set(part.toolCall.toolCallId, part.toolCall.result.citationGrid);
+      }
+    }
+  }
+
   for (const citation of citations) {
     // Skip if we already have this reference
     if (explanationMap[citation.reference]) continue;
 
-    // Find tool call result for this citation
-    let toolCallResult: { citationGrid?: CitationGrid } | null = null;
-    if (citation.toolCallId) {
-      for (const msg of allMessages) {
-        if (msg.role === "assistant") {
-          for (const part of msg.parts) {
-            if (
-              part.type === "tool-call" &&
-              part.toolCall.toolCallId === citation.toolCallId &&
-              part.toolCall.result
-            ) {
-              toolCallResult = part.toolCall.result;
-              break;
-            }
-          }
-        }
-        if (toolCallResult) break;
-      }
-    }
-
     let explanationSteps: Step[] = [];
-    const citationGrid: CitationGrid | undefined = toolCallResult?.citationGrid;
 
-    if (citationGrid) {
+    if (allGrids.size > 0) {
+      const normalizedRef = normalizeReference(citation.reference);
       const { ids } = parseReference(citation.reference);
 
-      // Parse operators from reference (excluding comma)
+      // Parse operators from normalized reference (excluding comma)
       const nonCommaOps = DERIVED_OPERATORS.filter(op => op !== ',');
       const escapedOps = nonCommaOps.map(op =>
         op.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -115,13 +106,13 @@ export function buildExplanationMap(
       const operatorPattern = new RegExp(` (${escapedOps.join('|')}) `, 'g');
       const operators: string[] = [];
       let match;
-      while ((match = operatorPattern.exec(citation.reference)) !== null) {
+      while ((match = operatorPattern.exec(normalizedRef)) !== null) {
         operators.push(match[1]);
       }
 
       if (ids.length === 1) {
         // Single reference — look up and highlight
-        const cell = lookupCitationCell(citationGrid, ids[0]);
+        const cell = lookupCitationCellAcrossGrids(allGrids, ids[0]);
         if (cell) {
           explanationSteps = highlightEntityInSteps(cell.steps, ids[0]);
         }
@@ -129,11 +120,15 @@ export function buildExplanationMap(
         // Derived reference — look up each cell, combine with separators + comparison
         // Deduplicate by cell ID: if multiple IDs resolve to the same cell,
         // show the cell steps only once and highlight all referenced values
-        const comparisonValues: { id: string; value: string }[] = [];
+        const comparisonValues: { id: string; value: string; isPercentage?: boolean }[] = [];
         const seenCellIds = new Set<string>();
 
         for (const id of ids) {
-          const cell = lookupCitationCell(citationGrid, id);
+          if (isLiteralNumber(id)) {
+            comparisonValues.push({ id, value: id, isPercentage: false });
+            continue;
+          }
+          const cell = lookupCitationCellAcrossGrids(allGrids, id);
           if (cell) {
             // Only add cell steps once per unique cell
             if (!seenCellIds.has(cell.id)) {
@@ -146,9 +141,9 @@ export function buildExplanationMap(
             }
 
             // Always extract value for comparison (even for deduplicated cells)
-            const value = findEntityValue(cell.steps, id);
-            if (value) {
-              comparisonValues.push({ id, value });
+            const found = findEntityValue(cell.steps, id);
+            if (found) {
+              comparisonValues.push({ id, value: found.value, isPercentage: found.isPercentage });
             }
           }
         }
@@ -156,11 +151,13 @@ export function buildExplanationMap(
         // Add comparison step if we have operators and enough values
         if (operators.length > 0 && comparisonValues.length >= 2) {
           const gen = new PrefixedIdGenerator("cmp");
+          const grouping = parseGrouping(citation.reference);
           const comparisonStep = createComparisonStep(
             gen,
             comparisonValues,
             operators,
-            explanationSteps.length + 1
+            explanationSteps.length + 1,
+            grouping
           );
           explanationSteps.push(comparisonStep);
         }

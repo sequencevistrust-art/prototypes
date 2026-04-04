@@ -440,6 +440,16 @@ const ExplainChatPane = forwardRef<ExplainChatPaneRef, ExplainChatPaneProps>(fun
     }
 
     if (toolCallResult && toolCallResult.table && toolCallResult.steps) {
+        // Collect all citation grids for cross-tool-call references
+        const allGrids = new Map<string, import("../types/citation").CitationGrid>();
+        for (const msg of messages) {
+          if (msg.role !== "assistant") continue;
+          for (const part of msg.parts) {
+            if (part.type === "tool-call" && part.toolCall.result?.citationGrid) {
+              allGrids.set(part.toolCall.toolCallId, part.toolCall.result.citationGrid);
+            }
+          }
+        }
         onCitationHover(
           {
             toolCallId: resolvedToolCallId,
@@ -452,6 +462,7 @@ const ExplainChatPane = forwardRef<ExplainChatPaneRef, ExplainChatPaneProps>(fun
             },
             highlightedText: highlightedText || reference, // Use highlighted text if found
             explanationSteps: cachedExplanationSteps,
+            allCitationGrids: allGrids,
             reason, // Include the reason as supplementary
           },
           event
@@ -540,6 +551,16 @@ const ExplainChatPane = forwardRef<ExplainChatPaneRef, ExplainChatPaneProps>(fun
       if (highlightedText) break;
     }
 
+    // Collect all citation grids for cross-tool-call references
+    const allGrids = new Map<string, import("../types/citation").CitationGrid>();
+    for (const msg of messages) {
+      if (msg.role !== "assistant") continue;
+      for (const part of msg.parts) {
+        if (part.type === "tool-call" && part.toolCall.result?.citationGrid) {
+          allGrids.set(part.toolCall.toolCallId, part.toolCall.result.citationGrid);
+        }
+      }
+    }
     onCitationClick(
       {
         toolCallId: resolvedToolCallId,
@@ -552,6 +573,7 @@ const ExplainChatPane = forwardRef<ExplainChatPaneRef, ExplainChatPaneProps>(fun
         },
         highlightedText: highlightedText || findManualCitationData(reference).highlightedText || reference,
         explanationSteps: cachedExplanationSteps,
+        allCitationGrids: allGrids,
         reason: findManualCitationData(reference).reason,
       },
       event

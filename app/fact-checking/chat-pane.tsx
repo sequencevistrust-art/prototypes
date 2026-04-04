@@ -24,6 +24,7 @@ interface PopupData {
   table: Table | null;
   steps: OperationWithId[] | null;
   citationGrid?: CitationGrid;
+  allCitationGrids?: Map<string, CitationGrid>;
   explanationSteps?: Step[];
   reason?: string;
   traceIds?: {
@@ -59,24 +60,24 @@ export function FactCheckPane() {
   useEffect(() => { return () => { abortControllerRef.current?.abort(); }; }, []);
 
   // ---- Popup handlers ----
-  const handleCitationHover = useCallback((data: { toolCallId: string; ids: string[]; reference: string; toolCallResult?: { table: Table; steps: OperationWithId[]; citationGrid?: CitationGrid }; highlightedText: string; explanationSteps?: Step[] } | null, event: ReactMouseEvent) => {
+  const handleCitationHover = useCallback((data: { toolCallId: string; ids: string[]; reference: string; toolCallResult?: { table: Table; steps: OperationWithId[]; citationGrid?: CitationGrid }; highlightedText: string; explanationSteps?: Step[]; allCitationGrids?: Map<string, CitationGrid> } | null, event: ReactMouseEvent) => {
     if (isPinnedRef.current) return;
     if (hideTimeoutRef.current) { clearTimeout(hideTimeoutRef.current); hideTimeoutRef.current = null; }
     if (!data) { hideTimeoutRef.current = setTimeout(() => { setShowPopup(false); setPopupData(null); }, 150); return; }
     setPopupPosition({ x: event.clientX, y: event.clientY });
     if (!data.toolCallResult) return;
     const referencedCells = extractReferencedCells(data.toolCallResult.table, data.ids);
-    setPopupData({ referencedCells, reference: data.reference, highlightedText: data.highlightedText, table: data.toolCallResult.table, steps: data.toolCallResult.steps, citationGrid: data.toolCallResult.citationGrid, explanationSteps: data.explanationSteps, traceIds: { toolCallId: data.toolCallId, reference: data.reference } });
+    setPopupData({ referencedCells, reference: data.reference, highlightedText: data.highlightedText, table: data.toolCallResult.table, steps: data.toolCallResult.steps, citationGrid: data.toolCallResult.citationGrid, allCitationGrids: data.allCitationGrids, explanationSteps: data.explanationSteps, traceIds: { toolCallId: data.toolCallId, reference: data.reference } });
     setShowPopup(true);
   }, []);
 
-  const handleCitationClick = useCallback((data: { toolCallId: string; ids: string[]; reference: string; toolCallResult?: { table: Table; steps: OperationWithId[]; citationGrid?: CitationGrid }; highlightedText: string; explanationSteps?: Step[] }, event: ReactMouseEvent) => {
+  const handleCitationClick = useCallback((data: { toolCallId: string; ids: string[]; reference: string; toolCallResult?: { table: Table; steps: OperationWithId[]; citationGrid?: CitationGrid }; highlightedText: string; explanationSteps?: Step[]; allCitationGrids?: Map<string, CitationGrid> }, event: ReactMouseEvent) => {
     isPinnedRef.current = true;
     if (hideTimeoutRef.current) { clearTimeout(hideTimeoutRef.current); hideTimeoutRef.current = null; }
     setPopupPosition({ x: event.clientX, y: event.clientY });
     if (!data.toolCallResult) return;
     const referencedCells = extractReferencedCells(data.toolCallResult.table, data.ids);
-    setPopupData({ referencedCells, reference: data.reference, highlightedText: data.highlightedText, table: data.toolCallResult.table, steps: data.toolCallResult.steps, citationGrid: data.toolCallResult.citationGrid, explanationSteps: data.explanationSteps, traceIds: { toolCallId: data.toolCallId, reference: data.reference } });
+    setPopupData({ referencedCells, reference: data.reference, highlightedText: data.highlightedText, table: data.toolCallResult.table, steps: data.toolCallResult.steps, citationGrid: data.toolCallResult.citationGrid, allCitationGrids: data.allCitationGrids, explanationSteps: data.explanationSteps, traceIds: { toolCallId: data.toolCallId, reference: data.reference } });
     setShowPopup(true); setIsPinned(true); setActiveCitationReference(data.reference);
   }, []);
 
@@ -95,6 +96,19 @@ export function FactCheckPane() {
     return null;
   }, []);
 
+  const collectAllCitationGrids = useCallback((msgs: Message[]) => {
+    const grids = new Map<string, import("../types/citation").CitationGrid>();
+    for (const msg of msgs) {
+      if (msg.role !== "assistant") continue;
+      for (const part of msg.parts) {
+        if (part.type === "tool-call" && part.toolCall.result?.citationGrid) {
+          grids.set(part.toolCall.toolCallId, part.toolCall.result.citationGrid);
+        }
+      }
+    }
+    return grids;
+  }, []);
+
   const onCitationHoverAdapted = useCallback((toolCallId: string, ids: string[], reference: string, event: ReactMouseEvent<HTMLSpanElement>) => {
     let resolvedId = toolCallId; let resolvedIds = ids;
     if (!toolCallId || toolCallId === "__manual__") { const p = parseReference(reference); if (p.toolCallId) resolvedId = p.toolCallId; if (p.ids.length > 0) resolvedIds = p.ids; }
@@ -102,9 +116,10 @@ export function FactCheckPane() {
     let cachedSteps: Step[] | undefined;
     for (const msg of allMessages) { if (msg.explanationMap?.[reference]) { cachedSteps = msg.explanationMap[reference]; break; } }
     if (result?.table && result?.steps) {
-      handleCitationHover({ toolCallId: resolvedId, ids: resolvedIds, reference, toolCallResult: { table: result.table, steps: result.steps, citationGrid: result.citationGrid }, highlightedText: reference, explanationSteps: cachedSteps }, event as unknown as ReactMouseEvent);
+      const allGrids = collectAllCitationGrids(allMessages);
+      handleCitationHover({ toolCallId: resolvedId, ids: resolvedIds, reference, toolCallResult: { table: result.table, steps: result.steps, citationGrid: result.citationGrid }, highlightedText: reference, explanationSteps: cachedSteps, allCitationGrids: allGrids }, event as unknown as ReactMouseEvent);
     } else { handleCitationHover(null, event as unknown as ReactMouseEvent); }
-  }, [allMessages, findToolCallResult, handleCitationHover]);
+  }, [allMessages, findToolCallResult, handleCitationHover, collectAllCitationGrids]);
 
   const onCitationClickAdapted = useCallback((toolCallId: string, ids: string[], reference: string, event: ReactMouseEvent<HTMLSpanElement>) => {
     let resolvedId = toolCallId; let resolvedIds = ids;
@@ -113,9 +128,10 @@ export function FactCheckPane() {
     let cachedSteps: Step[] | undefined;
     for (const msg of allMessages) { if (msg.explanationMap?.[reference]) { cachedSteps = msg.explanationMap[reference]; break; } }
     if (result?.table && result?.steps) {
-      handleCitationClick({ toolCallId: resolvedId, ids: resolvedIds, reference, toolCallResult: { table: result.table, steps: result.steps, citationGrid: result.citationGrid }, highlightedText: reference, explanationSteps: cachedSteps }, event as unknown as ReactMouseEvent);
+      const allGrids = collectAllCitationGrids(allMessages);
+      handleCitationClick({ toolCallId: resolvedId, ids: resolvedIds, reference, toolCallResult: { table: result.table, steps: result.steps, citationGrid: result.citationGrid }, highlightedText: reference, explanationSteps: cachedSteps, allCitationGrids: allGrids }, event as unknown as ReactMouseEvent);
     }
-  }, [allMessages, findToolCallResult, handleCitationClick]);
+  }, [allMessages, findToolCallResult, handleCitationClick, collectAllCitationGrids]);
 
   const onCitationLeaveAdapted = useCallback((event: ReactMouseEvent<HTMLSpanElement>) => {
     handleCitationHover(null, event as unknown as ReactMouseEvent);
@@ -129,14 +145,15 @@ export function FactCheckPane() {
     setPopupPosition({ x: event.clientX, y: event.clientY });
     // Use referenceIds as main reference (shows all context cells), errorId for red highlight
     const allIds = [...ids, ...parseReference(errorId).ids];
+    const allGrids = collectAllCitationGrids(allMessages);
     if (result?.table && result?.steps) {
       const referencedCells = extractReferencedCells(result.table, allIds);
-      setPopupData({ referencedCells, reference: referenceIds, highlightedText: referenceIds, table: result.table, steps: result.steps, citationGrid: result.citationGrid, traceIds: { toolCallId, errorId, referenceIds, reference: referenceIds } });
+      setPopupData({ referencedCells, reference: referenceIds, highlightedText: referenceIds, table: result.table, steps: result.steps, citationGrid: result.citationGrid, allCitationGrids: allGrids, traceIds: { toolCallId, errorId, referenceIds, reference: referenceIds } });
     } else {
-      setPopupData({ referencedCells: [], reference: referenceIds, highlightedText: referenceIds, table: null, steps: null, reason: "No verification data available for this error.", traceIds: { toolCallId, errorId, referenceIds, reference: referenceIds } });
+      setPopupData({ referencedCells: [], reference: referenceIds, highlightedText: referenceIds, table: null, steps: null, allCitationGrids: allGrids, reason: "No verification data available for this error.", traceIds: { toolCallId, errorId, referenceIds, reference: referenceIds } });
     }
     setShowPopup(true);
-  }, [allMessages, findToolCallResult]);
+  }, [allMessages, findToolCallResult, collectAllCitationGrids]);
 
   const onErrorLeaveAdapted = useCallback((event: ReactMouseEvent<HTMLSpanElement>) => {
     handleCitationHover(null, event as unknown as ReactMouseEvent);
@@ -148,14 +165,15 @@ export function FactCheckPane() {
     const result = findToolCallResult(toolCallId, allMessages);
     setPopupPosition({ x: event.clientX, y: event.clientY });
     const allIds = [...ids, ...parseReference(errorId).ids];
+    const allGrids = collectAllCitationGrids(allMessages);
     if (result?.table && result?.steps) {
       const referencedCells = extractReferencedCells(result.table, allIds);
-      setPopupData({ referencedCells, reference: referenceIds, highlightedText: referenceIds, table: result.table, steps: result.steps, citationGrid: result.citationGrid, traceIds: { toolCallId, errorId, referenceIds, reference: referenceIds } });
+      setPopupData({ referencedCells, reference: referenceIds, highlightedText: referenceIds, table: result.table, steps: result.steps, citationGrid: result.citationGrid, allCitationGrids: allGrids, traceIds: { toolCallId, errorId, referenceIds, reference: referenceIds } });
     } else {
-      setPopupData({ referencedCells: [], reference: referenceIds, highlightedText: referenceIds, table: null, steps: null, reason: "No verification data available for this error.", traceIds: { toolCallId, errorId, referenceIds, reference: referenceIds } });
+      setPopupData({ referencedCells: [], reference: referenceIds, highlightedText: referenceIds, table: null, steps: null, allCitationGrids: allGrids, reason: "No verification data available for this error.", traceIds: { toolCallId, errorId, referenceIds, reference: referenceIds } });
     }
     setShowPopup(true); setIsPinned(true);
-  }, [allMessages, findToolCallResult]);
+  }, [allMessages, findToolCallResult, collectAllCitationGrids]);
 
   // ---- Submit ----
   const handleSubmit = async (e: FormEvent) => {

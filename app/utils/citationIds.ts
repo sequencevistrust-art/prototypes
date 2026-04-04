@@ -4,7 +4,7 @@
 
 import { CitationCell, CitationGrid } from "../types/citation";
 import { Step, PrefixedIdGenerator } from "../types/steps";
-import { DERIVED_OPERATORS, parseReference } from "./citations";
+import { DERIVED_OPERATORS, parseReference, normalizeReference } from "./citations";
 import { createComparisonStep } from "../explain/steps/convertToSteps";
 
 /**
@@ -55,6 +55,42 @@ export function lookupCitationCell(
 }
 
 /**
+ * Check if a string is a literal number (not a reference ID).
+ */
+export function isLiteralNumber(s: string): boolean {
+  return /^-?\d+(\.\d+)?$/.test(s);
+}
+
+/**
+ * Extract the toolCallId prefix from a single reference ID.
+ */
+function extractToolCallId(refId: string): string | null {
+  const cellMatch = refId.match(/^(.+?)-cell-(\d+)-(\d+)/);
+  if (cellMatch) return cellMatch[1];
+  const sessionCountMatch = refId.match(/^(.+?)-row-header-(\d+)-session-count/);
+  if (sessionCountMatch) return sessionCountMatch[1];
+  const eventCountMatch = refId.match(/^(.+?)-row-header-(\d+)-event-count/);
+  if (eventCountMatch) return eventCountMatch[1];
+  const durationMatch = refId.match(/^(.+?)-row-header-(\d+)-duration/);
+  if (durationMatch) return durationMatch[1];
+  return null;
+}
+
+/**
+ * Look up a CitationCell across multiple grids using the ID's tool call prefix.
+ */
+export function lookupCitationCellAcrossGrids(
+  grids: Map<string, CitationGrid>,
+  refId: string
+): CitationCell | null {
+  const tcId = extractToolCallId(refId);
+  if (!tcId) return null;
+  const grid = grids.get(tcId);
+  if (!grid) return null;
+  return lookupCitationCell(grid, refId);
+}
+
+/**
  * Return steps with the given entityId marked for highlighting.
  * Currently returns steps unchanged — highlighting is determined at render time
  * by passing the entityId to step renderers via context/props (see Task #18).
@@ -73,39 +109,39 @@ export function highlightEntityInSteps(
  * Extract the formatted value of a cited entity from Steps.
  * Used for building ComparisonStep in derived citations.
  */
-export function findEntityValue(steps: Step[], entityId: string): string | null {
+export function findEntityValue(steps: Step[], entityId: string): { value: string; isPercentage: boolean } | null {
   for (const step of steps) {
     switch (step.type) {
       case "session-count-analysis":
         if (step.sessionCount.id === entityId) {
-          return step.sessionCount.value.toString();
+          return { value: step.sessionCount.value.toString(), isPercentage: false };
         }
         break;
       case "event-count-analysis":
         if (step.eventCount.id === entityId) {
-          return step.eventCount.value.toString();
+          return { value: step.eventCount.value.toString(), isPercentage: false };
         }
         break;
       case "duration-analysis":
         if (step.duration.id === entityId) {
           // Format duration: convert seconds to readable format
           const seconds = step.duration.value;
-          if (seconds < 60) return `${Math.round(seconds)}s`;
-          if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
-          return `${Math.round(seconds / 3600)}h`;
+          if (seconds < 60) return { value: `${Math.round(seconds)}s`, isPercentage: false };
+          if (seconds < 3600) return { value: `${Math.round(seconds / 60)}m`, isPercentage: false };
+          return { value: `${Math.round(seconds / 3600)}h`, isPercentage: false };
         }
         break;
       case "number-analysis":
         if (step.value.id === entityId) {
           const rounded = Math.round(step.value.value * 100) / 100;
-          return rounded.toString();
+          return { value: rounded.toString(), isPercentage: false };
         }
         break;
       case "category-distribution-analysis":
         for (const item of step.distribution) {
           if (item.percentage.id === entityId) {
             const rounded = Math.round(item.percentage.value * 100) / 100;
-            return rounded.toString();
+            return { value: rounded.toString(), isPercentage: true };
           }
         }
         break;
@@ -113,7 +149,7 @@ export function findEntityValue(steps: Step[], entityId: string): string | null 
         for (const item of step.distribution) {
           if (item.percentage.id === entityId) {
             const rounded = Math.round(item.percentage.value * 100) / 100;
-            return rounded.toString();
+            return { value: rounded.toString(), isPercentage: true };
           }
         }
         break;
@@ -121,20 +157,20 @@ export function findEntityValue(steps: Step[], entityId: string): string | null 
         for (const item of step.funnel) {
           if (item.percentage.id === entityId) {
             const rounded = Math.round(item.percentage.value * 100) / 100;
-            return rounded.toString();
+            return { value: rounded.toString(), isPercentage: true };
           }
         }
         for (const item of step.durations) {
           if (item.id === entityId) {
             const seconds = item.value;
-            if (seconds < 60) return `${Math.round(seconds)}s`;
-            if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
-            return `${Math.round(seconds / 3600)}h`;
+            if (seconds < 60) return { value: `${Math.round(seconds)}s`, isPercentage: false };
+            if (seconds < 3600) return { value: `${Math.round(seconds / 60)}m`, isPercentage: false };
+            return { value: `${Math.round(seconds / 3600)}h`, isPercentage: false };
           }
         }
         for (const item of step.eventCounts) {
           if (item.id === entityId) {
-            return item.value.toString();
+            return { value: item.value.toString(), isPercentage: false };
           }
         }
         break;
@@ -142,13 +178,13 @@ export function findEntityValue(steps: Step[], entityId: string): string | null 
         for (const item of step.oddsRatios) {
           if (item.oddsRatio.id === entityId) {
             const rounded = Math.round(item.oddsRatio.value * 100) / 100;
-            return rounded.toString();
+            return { value: rounded.toString(), isPercentage: false };
           }
         }
         break;
       case "no-filter":
         if (step.sessionCount.id === entityId) {
-          return step.sessionCount.value.toString();
+          return { value: step.sessionCount.value.toString(), isPercentage: false };
         }
         break;
     }
@@ -157,10 +193,51 @@ export function findEntityValue(steps: Step[], entityId: string): string | null 
 }
 
 /**
+ * Parse parenthesis grouping from a reference string.
+ * Returns value-index ranges for each parenthesized group.
+ * e.g., "(id1 * id2) / id3" → [{ start: 0, end: 1 }]
+ *        "id1 * (id2 + id3) / id4" → [{ start: 1, end: 2 }]
+ */
+export function parseGrouping(reference: string): { start: number; end: number }[] {
+  const groups: { start: number; end: number }[] = [];
+  // Normalize first to strip redundant percentage conversions
+  const normalized = normalizeReference(reference);
+  // Walk the reference string, tracking value index by counting non-operator tokens
+  const nonCommaOps = DERIVED_OPERATORS.filter(op => op !== ',');
+  const escapedOps = nonCommaOps.map(op =>
+    op.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  );
+  const tokenPattern = new RegExp(`\\(|\\)| (${escapedOps.join('|')}) |[^ ()]+`, 'g');
+
+  let valueIndex = 0;
+  let groupStart: number | null = null;
+  let match;
+
+  while ((match = tokenPattern.exec(normalized)) !== null) {
+    const token = match[0];
+    if (token === '(') {
+      groupStart = valueIndex;
+    } else if (token === ')') {
+      if (groupStart !== null) {
+        groups.push({ start: groupStart, end: valueIndex - 1 });
+        groupStart = null;
+      }
+    } else if (token.startsWith(' ') && token.endsWith(' ') && nonCommaOps.includes(token.trim())) {
+      // operator — skip
+    } else {
+      valueIndex++;
+    }
+  }
+
+  return groups;
+}
+
+/**
  * Parse non-comma operators from a reference string.
  * e.g., "id1 * id2" → ["*"], "id1 > id2 > id3" → [">", ">"]
  */
 export function parseOperators(reference: string): string[] {
+  const normalized = normalizeReference(reference);
   const operators: string[] = [];
   const nonCommaOps = DERIVED_OPERATORS.filter(op => op !== ',');
   const escapedOps = nonCommaOps.map(op =>
@@ -168,7 +245,7 @@ export function parseOperators(reference: string): string[] {
   );
   const operatorPattern = new RegExp(` (${escapedOps.join('|')}) `, 'g');
   let match;
-  while ((match = operatorPattern.exec(reference)) !== null) {
+  while ((match = operatorPattern.exec(normalized)) !== null) {
     operators.push(match[1]);
   }
   return operators;
@@ -188,28 +265,31 @@ export function buildCitationSteps(
 ): Step[] | null {
   const { ids, toolCallId } = parseReference(reference);
   if (!toolCallId || !citationGrids.has(toolCallId)) return null;
-  const grid = citationGrids.get(toolCallId)!;
 
   if (ids.length === 1) {
-    const cell = lookupCitationCell(grid, ids[0]);
+    const cell = lookupCitationCellAcrossGrids(citationGrids, ids[0]);
     return cell ? [...cell.steps] : null;
   }
 
   // Derived: combine cells with separators + comparison
   const combinedSteps: Step[] = [];
-  const comparisonValues: { id: string; value: string }[] = [];
+  const comparisonValues: { id: string; value: string; isPercentage?: boolean }[] = [];
   const seenCellIds = new Set<string>();
 
   for (const id of ids) {
-    const cell = lookupCitationCell(grid, id);
+    if (isLiteralNumber(id)) {
+      comparisonValues.push({ id, value: id, isPercentage: false });
+      continue;
+    }
+    const cell = lookupCitationCellAcrossGrids(citationGrids, id);
     if (cell) {
       if (!seenCellIds.has(cell.id)) {
         if (seenCellIds.size > 0) combinedSteps.push({ type: "separator" });
         combinedSteps.push(...cell.steps);
         seenCellIds.add(cell.id);
       }
-      const value = findEntityValue(cell.steps, id);
-      if (value) comparisonValues.push({ id, value });
+      const found = findEntityValue(cell.steps, id);
+      if (found) comparisonValues.push({ id, value: found.value, isPercentage: found.isPercentage });
     }
   }
 
@@ -217,8 +297,9 @@ export function buildCitationSteps(
   const operators = parseOperators(reference);
   if (operators.length > 0 && comparisonValues.length >= 2) {
     const gen = new PrefixedIdGenerator("cmp");
+    const grouping = parseGrouping(reference);
     combinedSteps.push(
-      createComparisonStep(gen, comparisonValues, operators, combinedSteps.length + 1)
+      createComparisonStep(gen, comparisonValues, operators, combinedSteps.length + 1, grouping)
     );
   }
 

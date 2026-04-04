@@ -173,8 +173,10 @@ export interface ComparisonStep {
   index: number;
   label: IdValue<"Based on the above...">;
   values: IdValue<string>[];
+  valueFlags?: { isPercentage?: boolean }[]; // Parallel to values — marks which values are percentages
   sourceIds?: string[]; // Original cell IDs, parallel to values — used by ComparisonStep for error highlighting
   operators: IdValue<string>[];
+  grouping?: { start: number; end: number }[]; // Parenthesis groups — value indices [start, end) that are wrapped in parens
 }
 
 // ============================================================================

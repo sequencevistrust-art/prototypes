@@ -7,12 +7,12 @@ import useScrollIndicator from "../hooks/useScrollIndicator";
 import { Table } from "../types/sandbox";
 import { ReferencedCell } from "../utils/extractReferencedCells";
 import { CitationGrid } from "../types/citation";
-import { lookupCitationCell, highlightEntityInSteps, findEntityValue, parseOperators } from "../utils/citationIds";
+import { lookupCitationCell, lookupCitationCellAcrossGrids, highlightEntityInSteps, findEntityValue, parseOperators, parseGrouping, isLiteralNumber } from "../utils/citationIds";
 import DebugView from "../explain/debug-view";
 import { StepRenderer, Step, PrefixedIdGenerator } from "../explain/steps";
 import { createComparisonStep } from "../explain/steps/convertToSteps";
 import { HighlightIdsProvider } from "../explain/steps/HighlightIdsContext";
-import { parseReference } from "../utils/citations";
+import { parseReference, normalizeReference } from "../utils/citations";
 
 // Operators used in derived citations
 const DERIVED_OPERATORS = ['+', '-', '*', '/', '>', '<', '=', '~', ','];
@@ -25,6 +25,7 @@ interface PopupData {
   table: Table | null;
   steps: import("../types/sandbox").OperationWithId[] | null;
   citationGrid?: CitationGrid;
+  allCitationGrids?: Map<string, CitationGrid>;
   explanationSteps?: Step[];
   reason?: string;
   traceIds?: {
@@ -108,19 +109,21 @@ const ExplanationPopup = forwardRef<HTMLDivElement, ExplanationPopupProps>(({
   const cellGroupsWithSteps = useMemo(() => {
     if (!popupData) return [];
 
-    const { referencedCells, reference, explanationSteps, citationGrid } = popupData;
+    const { referencedCells, reference, explanationSteps, citationGrid, allCitationGrids } = popupData;
 
     // If we have cached explanation steps, use them directly (single group)
     if (explanationSteps && explanationSteps.length > 0) {
-      // Extract IDs from reference for render-time highlighting
+      // Extract IDs from normalized reference for render-time highlighting
+      const normalizedRef = normalizeReference(reference);
       const nonCommaOps = DERIVED_OPERATORS.filter(op => op !== ',');
       const escapedOps = nonCommaOps.map(op =>
         op.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
       );
       const opPattern = new RegExp(` (${escapedOps.join('|')}) `, 'g');
-      const ids = reference.split(opPattern)
+      const ids = normalizedRef.split(opPattern)
         .filter(s => !nonCommaOps.includes(s.trim()) && s.trim())
-        .map(s => s.trim());
+        .map(s => s.trim())
+        .map(s => s.replace(/^\(+/, '').replace(/\)+$/, ''));
 
       return [{
         cells: referencedCells,
@@ -131,7 +134,13 @@ const ExplanationPopup = forwardRef<HTMLDivElement, ExplanationPopupProps>(({
     }
 
     // Use citationGrid for all lookups (single and derived)
-    if (citationGrid) {
+    if (citationGrid || allCitationGrids) {
+      // Helper: look up a cell, preferring cross-grid when available
+      const findCell = (refId: string) =>
+        allCitationGrids && allCitationGrids.size > 0
+          ? lookupCitationCellAcrossGrids(allCitationGrids, refId)
+          : citationGrid ? lookupCitationCell(citationGrid, refId) : null;
+
       const referenceGroups = splitReferenceByComma(reference);
 
       const groups: {
@@ -142,21 +151,23 @@ const ExplanationPopup = forwardRef<HTMLDivElement, ExplanationPopupProps>(({
       }[] = [];
 
       for (const group of referenceGroups) {
-        const groupOperators = parseOperators(group.segment);
+        const normalizedSegment = normalizeReference(group.segment);
+        const groupOperators = parseOperators(normalizedSegment);
 
-        // Parse IDs from this group's segment
+        // Parse IDs from this group's normalized segment
         const nonCommaOps = DERIVED_OPERATORS.filter(op => op !== ',');
         const escapedOps = nonCommaOps.map(op =>
           op.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
         );
         const opPattern = new RegExp(` (${escapedOps.join('|')}) `, 'g');
-        const ids = group.segment.split(opPattern)
+        const ids = normalizedSegment.split(opPattern)
           .filter(s => !nonCommaOps.includes(s.trim()) && s.trim())
-          .map(s => s.trim());
+          .map(s => s.trim())
+          .map(s => s.replace(/^\(+/, '').replace(/\)+$/, ''));
 
         if (ids.length === 1) {
           // Single cell
-          const cell = lookupCitationCell(citationGrid, ids[0]);
+          const cell = findCell(ids[0]);
           if (cell) {
             const steps = highlightEntityInSteps(cell.steps, ids[0]);
             groups.push({ cells: referencedCells, operators: groupOperators, steps, highlightIds: ids });
@@ -166,11 +177,15 @@ const ExplanationPopup = forwardRef<HTMLDivElement, ExplanationPopupProps>(({
           // Deduplicate by cell ID — if multiple IDs resolve to the same cell,
           // show the cell once and highlight all referenced values
           const combinedSteps: Step[] = [];
-          const comparisonValues: { id: string; value: string }[] = [];
+          const comparisonValues: { id: string; value: string; isPercentage?: boolean }[] = [];
           const seenCellIds = new Set<string>();
 
           for (let i = 0; i < ids.length; i++) {
-            const cell = lookupCitationCell(citationGrid, ids[i]);
+            if (isLiteralNumber(ids[i])) {
+              comparisonValues.push({ id: ids[i], value: ids[i], isPercentage: false });
+              continue;
+            }
+            const cell = findCell(ids[i]);
             if (cell) {
               // Only add cell steps once per unique cell
               if (!seenCellIds.has(cell.id)) {
@@ -180,19 +195,21 @@ const ExplanationPopup = forwardRef<HTMLDivElement, ExplanationPopupProps>(({
                 seenCellIds.add(cell.id);
               }
 
-              const value = findEntityValue(cell.steps, ids[i]);
-              if (value) comparisonValues.push({ id: ids[i], value });
+              const found = findEntityValue(cell.steps, ids[i]);
+              if (found) comparisonValues.push({ id: ids[i], value: found.value, isPercentage: found.isPercentage });
             }
           }
 
           // Add comparison step if operators present
           if (groupOperators.length > 0 && comparisonValues.length >= 2) {
             const gen = new PrefixedIdGenerator("cmp");
+            const grouping = parseGrouping(normalizedSegment);
             const comparisonStep = createComparisonStep(
               gen,
               comparisonValues,
               groupOperators,
-              combinedSteps.length + 1
+              combinedSteps.length + 1,
+              grouping
             );
             combinedSteps.push(comparisonStep);
           }

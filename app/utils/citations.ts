@@ -18,16 +18,50 @@ export interface Citation {
 }
 
 /**
+ * Normalize a reference string by stripping redundant "/ 100" percentage conversions.
+ * The AI sometimes writes "(percentageId / 100)" to manually convert a percentage to a decimal,
+ * but since we handle percentage conversion automatically, this is redundant.
+ * Detects percentage IDs by the "-number-" pattern in the ID.
+ *
+ * Also handles "* 100" on the other side: "(id * 100)" is similarly stripped if id has "-number-".
+ *
+ * Literal numbers that are NOT part of percentage conversion patterns are preserved.
+ */
+export function normalizeReference(reference: string): string {
+  // Match pattern: (percentageId / 100) or percentageId / 100
+  // where percentageId contains "-number-"
+  let result = reference;
+
+  // Pattern: (id-with-number / 100) → id-with-number
+  // Handles nested parens: outer parens may remain
+  result = result.replace(
+    /\((\s*[^\s()]*-number-[^\s()]*\s*) \/ 100\s*\)/g,
+    '$1'
+  );
+
+  // Pattern without explicit parens: id-with-number / 100 (at end or before operator)
+  result = result.replace(
+    /([^\s()]*-number-[^\s()]*) \/ 100(?=\s|$|\))/g,
+    '$1'
+  );
+
+  return result;
+}
+
+/**
  * Parse a reference string to extract individual IDs
  * Handles both single references and derived references with operators
  * Supports multiple chained operators: "id1 + id2 + id3" or "id1 > id2 > id3"
  * Returns { ids: string[], toolCallId: string | null }
  */
 export function parseReference(reference: string): { ids: string[]; toolCallId: string | null } {
+  // First normalize to strip redundant percentage conversions
+  let normalized = normalizeReference(reference);
+
   // Normalize comma separators: ensure commas are surrounded by spaces
   // so the operator split pattern (which requires ` , `) can match them.
   // Replace any comma not already surrounded by spaces with ` , `.
-  let normalized = reference.replace(/\s*,\s*/g, ' , ');
+  normalized = normalized.replace(/\s*,\s*/g, ' , ');
 
   // Build a regex pattern that matches any operator surrounded by spaces
   const escapedOps = DERIVED_OPERATORS.map(op =>

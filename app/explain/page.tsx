@@ -16,6 +16,7 @@ interface PopupData {
   table: Table | null;
   steps: OperationWithId[] | null;
   citationGrid?: CitationGrid;
+  allCitationGrids?: Map<string, CitationGrid>;
   explanationSteps?: Step[];
   reason?: string;
 }
@@ -69,6 +70,7 @@ export default function ExplainPage() {
       table: data.toolCallResult.table,
       steps: data.toolCallResult.steps,
       citationGrid: data.toolCallResult.citationGrid,
+      allCitationGrids: data.allCitationGrids,
       explanationSteps: data.explanationSteps,
     });
     setShowPopup(true);
@@ -106,6 +108,7 @@ export default function ExplainPage() {
       table: data.toolCallResult.table,
       steps: data.toolCallResult.steps,
       citationGrid: data.toolCallResult.citationGrid,
+      allCitationGrids: data.allCitationGrids,
       explanationSteps: data.explanationSteps,
     });
     setShowPopup(true);

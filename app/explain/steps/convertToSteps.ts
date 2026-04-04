@@ -450,17 +450,20 @@ function convertRowHeaderToAnalysisSteps(
  */
 export function createComparisonStep(
   gen: IIdGenerator,
-  values: { id: string; value: string }[],
+  values: { id: string; value: string; isPercentage?: boolean }[],
   operators: string[],
-  index: number
+  index: number,
+  grouping?: { start: number; end: number }[]
 ): ComparisonStep {
   return {
     type: "comparison",
     index,
     label: idValue(gen, "Based on the above..." as const),
     values: values.map((v) => idValue(gen, v.value)),
+    valueFlags: values.map((v) => ({ isPercentage: v.isPercentage })),
     sourceIds: values.map((v) => v.id),
     operators: operators.map((op) => idValue(gen, op)),
+    ...(grouping && grouping.length > 0 ? { grouping } : {}),
   };
 }
 
@@ -601,14 +604,14 @@ export function convertToSteps(
         const item = cell.distribution[refCell.numberIndex];
         if (item) {
           const rounded = Math.round(item.percentage * 100) / 100;
-          return { id: gen.dataId(item.id), value: rounded.toString() };
+          return { id: gen.dataId(item.id), value: rounded.toString(), isPercentage: true };
         }
       }
       if (cell.type === "pattern-distribution" && refCell.numberIndex !== undefined) {
         const item = cell.distribution[refCell.numberIndex];
         if (item) {
           const rounded = Math.round(item.percentage * 100) / 100;
-          return { id: gen.dataId(item.id), value: rounded.toString() };
+          return { id: gen.dataId(item.id), value: rounded.toString(), isPercentage: true };
         }
       }
       if (cell.type === "funnel") {

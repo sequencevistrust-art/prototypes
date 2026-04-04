@@ -28,6 +28,8 @@ export interface CitationHoverData {
   highlightedText: string;
   // Cached explanation steps with stable IDs
   explanationSteps?: Step[];
+  // All citation grids from all tool calls — enables cross-tool-call references
+  allCitationGrids?: Map<string, CitationGrid>;
   // For manually-added citations: LLM-generated data source explanation
   reason?: string;
 }
