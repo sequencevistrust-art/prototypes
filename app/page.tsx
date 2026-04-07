@@ -2,19 +2,34 @@ import Link from "next/link";
 
 const prototypes = [
   {
-    href: "/explain",
+    href: "/explore",
     number: "1",
+    title: "Tracing analytic provenance in AI-assisted visual data analysis systems",
+  },
+  {
+    href: "/explain",
+    number: "2",
     title: "Generating agentic insights in chat applications",
   },
   {
     href: "/fact-checking",
-    number: "2",
+    number: "3",
     title: "Automated fact checking in chat applications",
   },
+];
+
+const demoVideos = [
   {
-    href: "/explore",
-    number: "3",
+    href: "https://youtu.be/FelzA4QBjPw",
     title: "Tracing analytic provenance in AI-assisted visual data analysis systems",
+  },
+  {
+    href: "https://youtu.be/O3kncKqpFwk",
+    title: "Generating agentic insights in chat applications",
+  },
+  {
+    href: "https://youtu.be/dbV44hitln4",
+    title: "Automated fact checking in chat applications",
   },
 ];
 
@@ -32,16 +47,16 @@ const supplementary = [
     title: "Fact checking system prompt",
   },
   {
-    href: "https://github.com/sequencevistrust-art/supplementary/tree/main/tech-eval",
-    title: "Technical evaluation",
-  },
-  {
     href: "https://github.com/sequencevistrust-art/supplementary/tree/main/crowd-exp",
     title: "Two crowd experiments",
   },
   {
     href: "https://github.com/sequencevistrust-art/supplementary/tree/main/lab-study",
     title: "Lab study",
+  },
+  {
+    href: "https://github.com/sequencevistrust-art/supplementary/tree/main/tech-eval",
+    title: "Technical evaluation",
   },
 ];
 
@@ -54,6 +69,40 @@ export default function Home() {
             Explainable Agentic Insights at a Subsentence Level
           </h1>
           <p className="text-[15px] text-gray-400 mt-1">Technique and Evaluations</p>
+        </div>
+
+        <div className="border-t border-gray-200 pt-8 mb-10">
+          <h2 className="text-[11px] font-semibold text-gray-400 uppercase tracking-widest mb-5">
+            Demo Videos
+          </h2>
+          <div className="space-y-3">
+            {demoVideos.map((v) => (
+              <a
+                key={v.href}
+                href={v.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center justify-between rounded-lg bg-white border border-gray-200 px-5 py-3.5 shadow-sm transition-all hover:shadow-md hover:border-gray-300"
+              >
+                <span className="text-[14px] text-gray-700 group-hover:text-gray-900">
+                  {v.title}
+                </span>
+                <svg
+                  className="w-4 h-4 text-gray-300 group-hover:text-gray-500 flex-shrink-0 ml-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"
+                  />
+                </svg>
+              </a>
+            ))}
+          </div>
         </div>
 
         <div className="border-t border-gray-200 pt-8 mb-10">
