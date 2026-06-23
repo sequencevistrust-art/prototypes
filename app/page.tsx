@@ -2,57 +2,44 @@ import Link from "next/link";
 
 const prototypes = [
   {
-    href: "/explore",
-    number: "1",
-    title: "Tracing analytic provenance in AI-assisted visual data analysis systems",
-  },
-  {
     href: "/explain",
-    number: "2",
-    title: "Generating agentic insights in chat applications",
+    number: "1",
+    title: "Automated insight generation prototype",
   },
   {
     href: "/fact-checking",
-    number: "3",
-    title: "Automated fact checking in chat applications",
+    number: "2",
+    title: "Post-hoc fact-checking prototype",
   },
 ];
 
 const demoVideos = [
   {
-    href: "https://youtu.be/FelzA4QBjPw",
-    title: "Tracing analytic provenance in AI-assisted visual data analysis systems",
-  },
-  {
     href: "https://youtu.be/O3kncKqpFwk",
-    title: "Generating agentic insights in chat applications",
+    title: "Automated insight generation prototype",
   },
   {
     href: "https://youtu.be/dbV44hitln4",
-    title: "Automated fact checking in chat applications",
+    title: "Post-hoc fact-checking prototype",
   },
 ];
 
 const supplementary = [
   {
     href: "https://github.com/sequencevistrust-art/prototypes",
-    title: "Code for the three prototypes",
+    title: "Code for the two prototypes",
   },
   {
     href: "https://raw.githubusercontent.com/sequencevistrust-art/prototypes/refs/heads/main/app/api/explain/system-prompt.ts",
-    title: "Insight generation system prompt",
+    title: "Automated insight generation system prompt",
   },
   {
     href: "https://raw.githubusercontent.com/sequencevistrust-art/prototypes/refs/heads/main/app/api/fact-checking/system-prompt.ts",
-    title: "Fact checking system prompt",
+    title: "Post-hoc fact-checking system prompt",
   },
   {
     href: "https://github.com/sequencevistrust-art/supplementary/tree/main/crowd-exp",
     title: "Two crowd experiments",
-  },
-  {
-    href: "https://github.com/sequencevistrust-art/supplementary/tree/main/lab-study",
-    title: "Lab study",
   },
   {
     href: "https://github.com/sequencevistrust-art/supplementary/tree/main/tech-eval",
@@ -66,9 +53,9 @@ export default function Home() {
       <div className="max-w-xl w-full px-8 py-16">
         <div className="mb-10">
           <h1 className="text-[22px] font-semibold leading-snug text-gray-900">
-            Explainable Agentic Insights at a Subsentence Level
+            Linking event-sequence data claims to Analytic Provenance in Chatbots
           </h1>
-          <p className="text-[15px] text-gray-400 mt-1">Technique and Evaluations</p>
+          <p className="text-[15px] text-gray-400 mt-1">Technique and Evaluation</p>
         </div>
 
         <div className="border-t border-gray-200 pt-8 mb-10">
