@@ -53,7 +53,7 @@ export default function Home() {
       <div className="max-w-xl w-full px-8 py-16">
         <div className="mb-10">
           <h1 className="text-[22px] font-semibold leading-snug text-gray-900">
-            Linking event-sequence data claims to Analytic Provenance in Chatbots
+            Linking Event-Sequence Data Claims to Analytic Provenance in Chatbots
           </h1>
           <p className="text-[15px] text-gray-400 mt-1">Technique and Evaluation</p>
         </div>
