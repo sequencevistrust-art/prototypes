@@ -30,10 +30,6 @@ const supplementary = [
     href: "https://github.com/sequencevistrust-art/supplementary/tree/main/crowd-exp",
     title: "Two crowd experiments",
   },
-  {
-    href: "https://github.com/sequencevistrust-art/supplementary/tree/main/tech-eval",
-    title: "Technical evaluation",
-  },
 ];
 
 export default function Home() {
