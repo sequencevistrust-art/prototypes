@@ -1,5 +1,4 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { createVertex } from "@ai-sdk/google-vertex";
 import { ProxyAgent } from 'undici';
 
 // Reuse dispatcher to prevent socket exhaustion and connection issues
@@ -18,8 +17,7 @@ function getDispatcher() {
 }
 
 /**
- * Create a configured Gemini model.
- * Prefers Vertex AI if credentials are available, falls back to AI Studio.
+ * Create a configured Gemini model via the Gemini API (AI Studio key).
  */
 export function createModel() {
   const customFetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
@@ -31,30 +29,9 @@ export function createModel() {
     return fetch(input, init);
   };
 
-  // Prefer Vertex AI if credentials are available
-  if (
-    process.env.GOOGLE_VERTEX_PROJECT &&
-    process.env.GOOGLE_CLIENT_EMAIL &&
-    process.env.GOOGLE_PRIVATE_KEY
-  ) {
-    const vertex = createVertex({
-      project: process.env.GOOGLE_VERTEX_PROJECT,
-      location: process.env.GOOGLE_VERTEX_LOCATION,
-      googleAuthOptions: {
-        credentials: {
-          client_email: process.env.GOOGLE_CLIENT_EMAIL,
-          private_key: process.env.GOOGLE_PRIVATE_KEY,
-        },
-      },
-      fetch: customFetch,
-    });
-    return vertex("gemini-3-flash-preview");
-  }
-
-  // Fall back to AI Studio
   if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
     throw new Error(
-      "No Gemini credentials configured. Set either Vertex AI credentials (GOOGLE_VERTEX_PROJECT, GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY) or GOOGLE_GENERATIVE_AI_API_KEY."
+      "No Gemini credentials configured. Set GOOGLE_GENERATIVE_AI_API_KEY (get one at https://aistudio.google.com/apikey)."
     );
   }
   const google = createGoogleGenerativeAI({

@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.2",
-    "@ai-sdk/google-vertex": "^4.0.59",
     "@ai-sdk/provider-utils": "^4.0.15",
     "@ai-sdk/react": "^3.0.118",
     "@fontsource/open-sans": "^5.2.7",
